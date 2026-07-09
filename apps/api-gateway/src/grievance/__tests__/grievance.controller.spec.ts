@@ -62,14 +62,14 @@ describe('GrievanceController', () => {
     const result = await controller.analyze('help', 'new-key');
 
     expect(service.analyzeGrievance).toHaveBeenCalledWith('help');
-    expect(repository.create).toHaveBeenCalledWith({
+    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
       originalText: 'help',
       intent: 'INQUIRY',
       priority: 'LOW',
       suggestedResolution: 'Check FAQ',
       idempotencyKey: 'new-key',
       status: 'OPEN',
-    });
+    }));
     expect(repository.save).toHaveBeenCalledWith(mockCreated);
     expect(result).toEqual({
       success: true,

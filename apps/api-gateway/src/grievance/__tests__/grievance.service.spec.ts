@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { GrievanceService } from '../grievance.service';
+import { Grievance } from '../entities/grievance.entity';
 
 // Mock the GoogleGenAI module
 jest.mock('@google/genai', () => {
@@ -12,6 +14,8 @@ jest.mock('@google/genai', () => {
               intent: 'COMPLAINT',
               priority: 'HIGH',
               suggestedResolution: 'Refund immediately',
+              severity: 5,
+              etaBand: '24-48 hours',
             }),
           }),
         },
@@ -29,7 +33,10 @@ describe('GrievanceService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GrievanceService],
+      providers: [
+        GrievanceService,
+        { provide: getRepositoryToken(Grievance), useValue: {} }
+      ],
     }).compile();
 
     service = module.get<GrievanceService>(GrievanceService);
@@ -46,6 +53,8 @@ describe('GrievanceService', () => {
       intent: 'COMPLAINT',
       priority: 'HIGH',
       suggestedResolution: 'Refund immediately',
+      severity: 5,
+      etaBand: '24-48 hours',
     });
   });
 });

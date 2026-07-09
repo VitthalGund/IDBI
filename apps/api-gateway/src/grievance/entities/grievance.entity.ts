@@ -14,6 +14,12 @@ export class Grievance {
   @Column({ nullable: true })
   priority: string;
 
+  @Column({ type: 'int', nullable: true })
+  severity: number;
+
+  @Column({ nullable: true })
+  etaBand: string;
+
   @Column('text', { nullable: true })
   suggestedResolution: string;
 
@@ -25,4 +31,7 @@ export class Grievance {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ nullable: true })
+  internalDeadline: Date;
 }

@@ -1,10 +1,12 @@
-import { Controller, Post, Body, Headers, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Headers, BadRequestException, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GrievanceService } from './grievance.service';
 import { Grievance } from './entities/grievance.entity';
 
 @Controller('grievance')
+@UseGuards(JwtAuthGuard)
 export class GrievanceController {
   constructor(
     private readonly grievanceService: GrievanceService,
@@ -39,11 +41,17 @@ export class GrievanceController {
     const analysis = await this.grievanceService.analyzeGrievance(text);
     
     // Save to DB
+    const internalDeadline = new Date();
+    internalDeadline.setDate(internalDeadline.getDate() + 30); // SLA deadline is 30 days
+
     const grievance = this.grievanceRepository.create({
       originalText: text,
       intent: analysis.intent,
       priority: analysis.priority,
       suggestedResolution: analysis.suggestedResolution,
+      severity: analysis.severity,
+      etaBand: analysis.etaBand,
+      internalDeadline,
       idempotencyKey,
       status: 'OPEN',
     });
