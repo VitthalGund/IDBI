@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { TrustEvent } from '../entities/trust-event.entity';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
@@ -24,6 +25,7 @@ describe('AuthController', () => {
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: mockService },
+        { provide: JwtService, useValue: { sign: () => 'mock-jwt-token' } },
         { provide: getRepositoryToken(TrustEvent), useValue: mockRepository },
       ],
     }).compile();
@@ -40,7 +42,7 @@ describe('AuthController', () => {
       reason: 'mock reason',
     });
 
-    const res = await controller.login('admin', 'dev-123');
+    const res = await controller.login('admin', 'password', 'dev-123');
     expect(res.requireOtp).toBe(true);
     expect(res.trustReason).toBe('mock reason');
   });
@@ -52,18 +54,18 @@ describe('AuthController', () => {
       reason: 'mock reason',
     });
 
-    const res = await controller.login('admin', 'dev-123');
+    const res = await controller.login('admin', 'password', 'dev-123');
     expect(res.requireOtp).toBe(false);
   });
 
   it('verifyOtp records event and returns token on 123456', async () => {
-    const res = await controller.verifyOtp('123456', 'dev-123');
-    expect(res.success).toBe(true);
-    expect(res.token).toContain('demo-session-token');
-    expect(service.recordTrustEvent).toHaveBeenCalledWith('dev-123', 5, 'Successful OTP verification');
+    const result = await controller.verifyOtp('demouser', '123456', 'device-untrusted');
+    expect(result.success).toBe(true);
+    expect(result.token).toContain('mock-jwt-token');
+    expect(service.recordTrustEvent).toHaveBeenCalledWith('device-untrusted', 5, 'Successful OTP verification');
   });
 
   it('verifyOtp throws UnauthorizedException on incorrect OTP', async () => {
-    await expect(controller.verifyOtp('000000', 'dev-123')).rejects.toThrow(UnauthorizedException);
+    await expect(controller.verifyOtp('demouser', '000000', 'device-untrusted')).rejects.toThrow(UnauthorizedException);
   });
 });

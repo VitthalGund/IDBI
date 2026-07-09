@@ -1,6 +1,7 @@
 import { Controller, Post, Body, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { TrustEvent } from './entities/trust-event.entity';
 
@@ -8,6 +9,7 @@ import { TrustEvent } from './entities/trust-event.entity';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
     @InjectRepository(TrustEvent)
     private trustRepository: Repository<TrustEvent>,
   ) {}
@@ -15,31 +17,43 @@ export class AuthController {
   @Post('login')
   async login(
     @Body('username') username: string,
-    @Body('deviceId') deviceId: string,
+    @Body('password') password?: string,
+    @Body('deviceId') deviceId?: string,
   ) {
     if (!username || !deviceId) {
       throw new BadRequestException('Username and deviceId are required');
     }
 
-    const trustResult = await this.authService.evaluateTrustScore(deviceId);
+    // For Demo: we verify password (any non-empty password passes for demo)
+    if (!password) {
+      throw new UnauthorizedException('Password is required');
+    }
 
-    // For Demo: Any username is accepted.
-    // If device is trusted, we return requireOtp: false and skip OTP
+    const trustResult = await this.authService.evaluateTrustScore(deviceId);
+    let token = undefined;
+
+    // If device is trusted, we skip OTP and issue a real token
+    if (trustResult.trusted) {
+      token = this.jwtService.sign({ username, sub: deviceId });
+    }
+
     return {
       success: true,
       requireOtp: !trustResult.trusted,
       trustReason: trustResult.reason,
-      tempToken: 'demo-temp-token-' + username,
+      token, // token is defined only if trusted
+      tempToken: 'demo-temp-token-' + username, // kept for backward compatibility if needed during migration
     };
   }
 
   @Post('verify-otp')
   async verifyOtp(
+    @Body('username') username: string,
     @Body('otp') otp: string,
     @Body('deviceId') deviceId: string,
   ) {
-    if (!otp || !deviceId) {
-      throw new BadRequestException('OTP and deviceId are required');
+    if (!otp || !deviceId || !username) {
+      throw new BadRequestException('Username, OTP and deviceId are required');
     }
 
     // Demo invariant: OTP is 123456
@@ -50,9 +64,11 @@ export class AuthController {
     // Success: Append a positive trust score to the device
     await this.authService.recordTrustEvent(deviceId, 5, 'Successful OTP verification');
 
+    const token = this.jwtService.sign({ username, sub: deviceId });
+
     return {
       success: true,
-      token: 'demo-session-token-' + Math.random().toString(36).substring(7),
+      token,
     };
   }
 
