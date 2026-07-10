@@ -20,6 +20,8 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const [tempToken, setTempToken] = useState('');
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -33,14 +35,15 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       const response = await fetch('http://localhost:3000/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp, deviceId })
+        body: JSON.stringify({ username, otp, deviceId })
       });
       
       const data = await response.json();
       setLoading(false);
 
       if (data.success) {
-        onOtpSuccess(data.token);
+        setTempToken(data.token);
+        setIsVerified(true);
       } else {
         setError(data.message || 'Verification failed. Please try again.');
       }
@@ -49,6 +52,44 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       setError('Network error. Check your server connection.');
     }
   };
+
+  const handleConsent = async (register: boolean) => {
+    if (!register) {
+      // If they refuse registration, we clear the trust event we just recorded in the backend
+      try {
+        await fetch('http://localhost:3000/auth/reset-trust', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deviceId })
+        });
+      } catch (e) {
+        // Ignore error on reset, we just proceed
+      }
+    }
+    onOtpSuccess(tempToken);
+  };
+
+  if (isVerified) {
+    return (
+      <View style={styles.container}>
+        <Card style={styles.card}>
+          <Text style={styles.title}>Device Registration</Text>
+          <Text style={styles.subtitle}>You successfully verified this device. Would you like to register it as a trusted device to skip OTP in the future?</Text>
+          
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => handleConsent(true)}
+          >
+            <Text style={styles.buttonText}>Yes, Register Device</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={() => handleConsent(false)}>
+            <Text style={styles.cancelText}>No, Skip for Now</Text>
+          </TouchableOpacity>
+        </Card>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

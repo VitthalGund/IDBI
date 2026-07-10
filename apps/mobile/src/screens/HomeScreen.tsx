@@ -11,17 +11,32 @@ interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onNavigateMsme }) => {
   const [grievanceText, setGrievanceText] = useState('');
+  const [grievanceResponse, setGrievanceResponse] = useState<any>(null);
   const [nudges, setNudges] = useState<any[]>([]);
 
+  const [account, setAccount] = useState<any>(null);
+
   useEffect(() => {
+    if (deviceId) {
+      fetchAccount();
+    }
     if (isProMode && deviceId) {
       fetchNudges();
     }
   }, [isProMode, deviceId]);
 
+  const fetchAccount = async () => {
+    try {
+      const response = await apiClient.request(`/accounts/me`, 'GET');
+      setAccount(response);
+    } catch (e) {
+      console.warn('Failed to fetch account', e);
+    }
+  };
+
   const fetchNudges = async () => {
     try {
-      const response = await apiClient.request(`/transactions/nudges?deviceId=${deviceId}`, 'GET');
+      const response = await apiClient.request(`/transactions/nudges`, 'GET');
       if (Array.isArray(response)) {
         setNudges(response);
       }
@@ -34,15 +49,44 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
     if (!grievanceText) return;
     try {
       const response = await apiClient.request('/grievance/analyze', 'POST', { text: grievanceText });
-      if (response.id) {
-        Alert.alert('Offline', 'Saved offline. Will sync later.');
-      } else {
-        Alert.alert('Success', JSON.stringify(response.data));
+      if (response.cached) {
+        Alert.alert('Info', 'Loaded cached grievance from previous offline submission.');
       }
+      setGrievanceResponse(response.data);
       setGrievanceText('');
     } catch (e) {
       Alert.alert('Error', e.message);
     }
+  };
+
+  const renderGrievanceCard = () => {
+    if (!grievanceResponse) return null;
+    
+    // Calculate days remaining
+    const deadline = new Date(grievanceResponse.internalDeadline);
+    const today = new Date();
+    const daysRemaining = Math.max(0, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 3600 * 24)));
+    
+    return (
+      <Card style={{ marginTop: 24, borderColor: colors.statusWarn, borderWidth: 1 }}>
+        <Text style={typography.h2}>Grievance Tracker (RB-IOS)</Text>
+        <Text style={[typography.body, { marginTop: 8 }]}>Status: {grievanceResponse.status}</Text>
+        <Text style={typography.body}>Intent: {grievanceResponse.intent}</Text>
+        <Text style={typography.body}>Severity: {grievanceResponse.severity}/5</Text>
+        
+        {grievanceResponse.status !== 'RESOLVED' && (
+          <Text style={[typography.body, { color: colors.statusWarn, marginTop: 8, fontWeight: 'bold' }]}>
+            SLA: {daysRemaining} days remaining
+          </Text>
+        )}
+        
+        {grievanceResponse.status !== 'RESOLVED' && daysRemaining <= 0 && (
+          <TouchableOpacity style={{ marginTop: 12, backgroundColor: colors.statusError, padding: 8, borderRadius: 4 }}>
+            <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>Escalate to RBI Ombudsman</Text>
+          </TouchableOpacity>
+        )}
+      </Card>
+    );
   };
 
   const renderGrievanceForm = () => (
@@ -68,7 +112,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
         
         <Card style={styles.largeTile}>
           <Text style={styles.tileTitle}>Your Balance</Text>
-          <Text style={styles.tileValue}>₹15,000.50</Text>
+          <Text style={styles.tileValue}>₹{account ? account.balance.toLocaleString() : '...'}</Text>
         </Card>
 
         <View style={styles.row}>
@@ -82,6 +126,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
         </View>
 
         {renderGrievanceForm()}
+        {renderGrievanceCard()}
       </ScrollView>
     );
   }
@@ -118,7 +163,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
       
       <Card>
         <Text style={typography.bodyLarge}>Total Balance</Text>
-        <Text style={typography.h1}>₹2,65,000.50</Text>
+        <Text style={typography.h1}>₹{account ? account.balance.toLocaleString() : '...'}</Text>
         <View style={{ marginTop: 8 }}>
           <StatusPill status="SUCCESS" label="+ 5% vs last month" />
         </View>
@@ -143,6 +188,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
       </Card>
 
       {renderGrievanceForm()}
+      {renderGrievanceCard()}
     </ScrollView>
   );
 };

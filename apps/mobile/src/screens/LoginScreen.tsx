@@ -29,7 +29,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
       
       // Fetch initial trust score preview
       try {
-        const response = await fetch(`http://localhost:3000/auth/login`, {
+        const response = await fetch(`http://127.0.0.1:3000/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: 'admin', deviceId: id })
@@ -60,10 +60,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
 
     try {
       // Direct call or via apiClient (apiClient queues if offline, but auth needs online)
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch('http://127.0.0.1:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, deviceId })
+        body: JSON.stringify({ username, password, deviceId })
       });
       
       const data = await response.json();
