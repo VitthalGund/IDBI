@@ -34,10 +34,7 @@ describe('AuthService', () => {
   });
 
   it('evaluateTrustScore returns true when sum of scoreDelta >= 5', async () => {
-    repository.find.mockResolvedValue([
-      { scoreDelta: 2 },
-      { scoreDelta: 3 },
-    ]);
+    repository.find.mockResolvedValue([{ scoreDelta: 2 }, { scoreDelta: 3 }]);
     const res = await service.evaluateTrustScore('dev-123');
     expect(res.trusted).toBe(true);
     expect(res.score).toBe(5);

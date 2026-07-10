@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, typography } from './theme';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { colors, typography } from "./theme";
 
-type Status = 'SUCCESS' | 'INFO' | 'WARN' | 'DANGER' | 'DEFAULT';
+type Status = "SUCCESS" | "INFO" | "WARN" | "DANGER" | "DEFAULT";
 
 interface StatusPillProps {
   label: string;
@@ -14,19 +14,19 @@ export const StatusPill: React.FC<StatusPillProps> = ({ label, status }) => {
   let textColor = colors.textInk;
 
   switch (status) {
-    case 'SUCCESS':
+    case "SUCCESS":
       backgroundColor = colors.statusSuccess;
       textColor = colors.surfaceWhite;
       break;
-    case 'INFO':
+    case "INFO":
       backgroundColor = colors.statusInfo;
       textColor = colors.surfaceWhite;
       break;
-    case 'WARN':
+    case "WARN":
       backgroundColor = colors.statusWarn;
       textColor = colors.brandTeal900;
       break;
-    case 'DANGER':
+    case "DANGER":
       backgroundColor = colors.statusDanger;
       textColor = colors.surfaceWhite;
       break;
@@ -44,10 +44,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   label: {
     ...typography.caption,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

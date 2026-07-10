@@ -1,32 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, View, Text, Switch, TouchableOpacity } from 'react-native';
-import { HomeScreen } from './src/screens/HomeScreen';
-import { LoginScreen } from './src/screens/LoginScreen';
-import { OtpScreen } from './src/screens/OtpScreen';
-import { MsmeCockpitScreen } from './src/screens/MsmeCockpitScreen';
-import { LiteModeScreen } from './src/screens/LiteModeScreen';
-import { MyDevicesScreen } from './src/screens/MyDevicesScreen';
-import { ModeToggle, colors, typography } from '@trustbank/ui-kit';
-import { isSimulatedOffline, setSimulatedOffline, setAuthToken } from './src/utils/apiClient';
-import { getOrCreateDeviceId } from './src/utils/device';
+import React, { useState, useEffect } from "react";
+import {
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  Switch,
+  TouchableOpacity,
+} from "react-native";
+import { HomeScreen } from "./src/screens/HomeScreen";
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { OtpScreen } from "./src/screens/OtpScreen";
+import { MsmeCockpitScreen } from "./src/screens/MsmeCockpitScreen";
+import { LiteModeScreen } from "./src/screens/LiteModeScreen";
+import { MyDevicesScreen } from "./src/screens/MyDevicesScreen";
+import { ModeToggle, colors, typography } from "@trustbank/ui-kit";
+import {
+  apiClient,
+  isSimulatedOffline,
+  setSimulatedOffline,
+  setAuthToken,
+} from "./src/utils/apiClient";
+import { getOrCreateDeviceId } from "./src/utils/device";
 
-type ScreenName = 'LOGIN' | 'OTP' | 'HOME' | 'MSME_COCKPIT' | 'MY_DEVICES';
+type ScreenName = "LOGIN" | "OTP" | "HOME" | "MSME_COCKPIT" | "MY_DEVICES";
 
 export default function App() {
   const [isProMode, setIsProMode] = useState(false);
   const [isLiteMode, setIsLiteMode] = useState(false);
   const [isOffline, setIsOffline] = useState(isSimulatedOffline);
-  const [lastUpdated, setLastUpdated] = useState('never');
-  
+  const [lastUpdated, setLastUpdated] = useState("never");
+
   // Auth state
-  const [screen, setScreen] = useState<ScreenName>('LOGIN');
-  const [deviceId, setDeviceId] = useState('');
-  const [username, setUsername] = useState('');
-  const [trustReason, setTrustReason] = useState('');
-  const [sessionToken, setSessionToken] = useState('');
+  const [screen, setScreen] = useState<ScreenName>("LOGIN");
+  const [deviceId, setDeviceId] = useState("");
+  const [username, setUsername] = useState("");
+  const [trustReason, setTrustReason] = useState("");
+  const [sessionToken, setSessionToken] = useState("");
 
   const [lastPolled, setLastPolled] = useState(Date.now());
-  const [nudge, setNudge] = useState<{ id: string; reason: string } | null>(null);
+  const [nudge, setNudge] = useState<{ id: string; reason: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     async function initDevice() {
@@ -38,20 +53,23 @@ export default function App() {
 
   // Polling loop for anomalies (every 10s)
   useEffect(() => {
-    if (screen !== 'HOME' || !sessionToken || isOffline) return;
+    if (screen !== "HOME" || !sessionToken || isOffline) return;
 
     const interval = setInterval(async () => {
       try {
         const url = `/transactions/since?ts=${lastPolled}`;
-        const newAnomalies = await apiClient.request(url, 'GET');
-        
+        const newAnomalies = await apiClient.request(url, "GET");
+
         if (newAnomalies && newAnomalies.length > 0) {
           // Show the most recent one
-          setNudge({ id: newAnomalies[0].id, reason: newAnomalies[0].anomalyReason });
+          setNudge({
+            id: newAnomalies[0].id,
+            reason: newAnomalies[0].anomalyReason,
+          });
           setLastPolled(Date.now());
         }
       } catch (e) {
-        console.error('Polling error:', e);
+        console.error("Polling error:", e);
       }
     }, 10000);
 
@@ -62,13 +80,13 @@ export default function App() {
     setIsOffline(value);
     setSimulatedOffline(value);
     if (value) {
-      const ts = await apiClient.getCacheTimestamp('/accounts/me');
+      const ts = await apiClient.getCacheTimestamp("/accounts/me");
       if (ts) {
         const diffMs = Date.now() - ts;
         const diffMins = Math.floor(diffMs / 60000);
-        setLastUpdated(diffMins < 1 ? 'just now' : `${diffMins}m ago`);
+        setLastUpdated(diffMins < 1 ? "just now" : `${diffMins}m ago`);
       } else {
-        setLastUpdated('never');
+        setLastUpdated("never");
       }
     }
   };
@@ -77,47 +95,47 @@ export default function App() {
     setUsername(user);
     setDeviceId(devId);
     setTrustReason(reason);
-    setScreen('OTP');
+    setScreen("OTP");
   };
 
   const handleLoginSuccess = (data: { token: string; trustReason: string }) => {
     setSessionToken(data.token);
     setAuthToken(data.token);
     setTrustReason(data.trustReason);
-    setScreen('HOME');
+    setScreen("HOME");
   };
 
   const resetTrustScore = async () => {
     try {
-      await fetch('http://localhost:3000/auth/reset-trust', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceId })
+      await fetch("http://localhost:3000/auth/reset-trust", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceId }),
       });
-      alert('Trust score reset. Next login will require OTP.');
-      setScreen('LOGIN');
-      setSessionToken('');
+      alert("Trust score reset. Next login will require OTP.");
+      setScreen("LOGIN");
+      setSessionToken("");
     } catch (e) {
-      alert('Failed to reset trust score. Ensure NestJS backend is running.');
+      alert("Failed to reset trust score. Ensure NestJS backend is running.");
     }
   };
 
   const handleSignOut = () => {
-    setScreen('LOGIN');
-    setSessionToken('');
+    setScreen("LOGIN");
+    setSessionToken("");
     setAuthToken(null);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.surfaceFog} />
-      
+
       {/* Dev Toggle for Network */}
-      {(process.env.EXPO_PUBLIC_DEV_MODE === 'true' || __DEV__) && (
+      {(process.env.EXPO_PUBLIC_DEV_MODE === "true" || __DEV__) && (
         <View style={styles.devBar}>
           <Text style={styles.devText}>Offline Mode:</Text>
           <Switch value={isOffline} onValueChange={toggleOffline} />
-          
+
           {deviceId ? (
             <TouchableOpacity style={styles.devBtn} onPress={resetTrustScore}>
               <Text style={styles.devBtnText}>Reset Trust</Text>
@@ -128,28 +146,35 @@ export default function App() {
 
       {isOffline && (
         <View style={styles.offlineBanner}>
-          <Text style={styles.offlineText}>Showing saved data — last updated {lastUpdated}</Text>
+          <Text style={styles.offlineText}>
+            Showing saved data — last updated {lastUpdated}
+          </Text>
         </View>
       )}
 
-      {screen === 'LOGIN' && (
-        <LoginScreen 
+      {screen === "LOGIN" && (
+        <LoginScreen
           onLoginSuccess={handleLoginSuccess}
           onRequireOtp={handleRequireOtp}
         />
       )}
 
-      {screen === 'OTP' && (
-        <OtpScreen 
+      {screen === "OTP" && (
+        <OtpScreen
           username={username}
           deviceId={deviceId}
           trustReason={trustReason}
-          onOtpSuccess={(token) => handleLoginSuccess({ token, trustReason: 'MFA verified successfully' })}
-          onCancel={() => setScreen('LOGIN')}
+          onOtpSuccess={(token) =>
+            handleLoginSuccess({
+              token,
+              trustReason: "MFA verified successfully",
+            })
+          }
+          onCancel={() => setScreen("LOGIN")}
         />
       )}
 
-      {screen === 'HOME' && (
+      {screen === "HOME" && (
         <>
           <View style={styles.header}>
             {trustReason && (
@@ -163,7 +188,10 @@ export default function App() {
                 <Switch value={isLiteMode} onValueChange={setIsLiteMode} />
               </View>
               <ModeToggle isProMode={isProMode} onToggle={setIsProMode} />
-              <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={handleSignOut}
+              >
                 <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             </View>
@@ -171,40 +199,91 @@ export default function App() {
           {isLiteMode ? (
             <LiteModeScreen deviceId={deviceId} />
           ) : (
-            <HomeScreen 
-              isProMode={isProMode} 
+            <HomeScreen
+              isProMode={isProMode}
               deviceId={deviceId}
-              onNavigateMsme={() => setScreen('MSME_COCKPIT')}
-              onNavigateDevices={() => setScreen('MY_DEVICES')}
+              onNavigateMsme={() => setScreen("MSME_COCKPIT")}
+              onNavigateDevices={() => setScreen("MY_DEVICES")}
             />
           )}
         </>
       )}
 
-      {screen === 'MSME_COCKPIT' && (
+      {screen === "MSME_COCKPIT" && (
         <>
           <View style={styles.header}>
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={handleSignOut}
+              >
                 <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             </View>
           </View>
-          <MsmeCockpitScreen onBack={() => setScreen('HOME')} />
+          <MsmeCockpitScreen onBack={() => setScreen("HOME")} />
         </>
       )}
 
-      {screen === 'MY_DEVICES' && (
-        <MyDevicesScreen onBack={() => setScreen('HOME')} />
+      {screen === "MY_DEVICES" && (
+        <MyDevicesScreen onBack={() => setScreen("HOME")} />
       )}
 
       {nudge && (
         <View style={styles.nudgeToast}>
           <Text style={styles.nudgeTitle}>⚠️ Anomaly Detected</Text>
           <Text style={styles.nudgeReason}>{nudge.reason}</Text>
-          <TouchableOpacity style={styles.nudgeDismissBtn} onPress={() => setNudge(null)}>
-            <Text style={styles.nudgeDismissText}>Dismiss</Text>
-          </TouchableOpacity>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 8,
+            }}
+          >
+            <TouchableOpacity
+              style={[
+                styles.nudgeDismissBtn,
+                {
+                  flex: 1,
+                  marginRight: 8,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                },
+              ]}
+              onPress={async () => {
+                try {
+                  await apiClient.request("/auth/trust-event", "POST", {
+                    deviceId,
+                    delta: 1,
+                    reason:
+                      "User confirmed anomalous transaction was legitimate",
+                  });
+                } catch (e) {
+                  // ignore
+                }
+                setNudge(null);
+              }}
+            >
+              <Text style={styles.nudgeDismissText}>This was me</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.nudgeDismissBtn,
+                {
+                  flex: 1,
+                  marginLeft: 8,
+                  backgroundColor: colors.statusDanger,
+                },
+              ]}
+              onPress={() => {
+                alert(
+                  "We will redirect this to the Grievance team and pause the transaction.",
+                );
+                setNudge(null);
+              }}
+            >
+              <Text style={styles.nudgeDismissText}>This wasn't me</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -217,11 +296,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceFog,
   },
   devBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     padding: 8,
-    backgroundColor: '#ffeaa7',
+    backgroundColor: "#ffeaa7",
   },
   devText: {
     ...typography.caption,
@@ -237,46 +316,46 @@ const styles = StyleSheet.create({
   devBtnText: {
     color: colors.surfaceWhite,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   offlineBanner: {
     backgroundColor: colors.statusWarn,
     padding: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   offlineText: {
     ...typography.body,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.brandTeal900,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     minHeight: 48,
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 'auto',
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: "auto",
   },
   securityIndicator: {
-    backgroundColor: 'rgba(21, 129, 88, 0.1)',
+    backgroundColor: "rgba(21, 129, 88, 0.1)",
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 16,
-    maxWidth: '60%',
+    maxWidth: "60%",
   },
   securityText: {
     fontSize: 11,
     color: colors.brandTeal600,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   signOutBtn: {
     marginLeft: 12,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderColor: colors.brandTeal900,
     borderWidth: 1,
     paddingVertical: 6,
@@ -286,13 +365,13 @@ const styles = StyleSheet.create({
   signOutText: {
     color: colors.brandTeal900,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   liteToggleWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
@@ -301,19 +380,19 @@ const styles = StyleSheet.create({
   },
   liteToggleLabel: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: "900",
     color: colors.brandOrange500,
     marginRight: 4,
   },
   nudgeToast: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     left: 20,
     right: 20,
     backgroundColor: colors.brandOrange500,
     padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -323,7 +402,7 @@ const styles = StyleSheet.create({
   nudgeTitle: {
     color: colors.surfaceWhite,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   nudgeReason: {
@@ -332,13 +411,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   nudgeDismissBtn: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
     paddingVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   nudgeDismissText: {
     color: colors.surfaceWhite,
-    fontWeight: 'bold',
-  }
+    fontWeight: "bold",
+  },
 });

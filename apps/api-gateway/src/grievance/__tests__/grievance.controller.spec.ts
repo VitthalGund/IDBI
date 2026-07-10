@@ -40,7 +40,9 @@ describe('GrievanceController', () => {
 
     const result = await controller.analyze('test text', 'mock-key');
 
-    expect(repository.findOne).toHaveBeenCalledWith({ where: { idempotencyKey: 'mock-key' } });
+    expect(repository.findOne).toHaveBeenCalledWith({
+      where: { idempotencyKey: 'mock-key' },
+    });
     expect(result).toEqual({
       success: true,
       data: mockExisting,
@@ -52,24 +54,34 @@ describe('GrievanceController', () => {
 
   it('should analyze and save new grievance if idempotencyKey is new', async () => {
     repository.findOne.mockResolvedValue(null);
-    const mockAnalysis = { intent: 'INQUIRY', priority: 'LOW', suggestedResolution: 'Check FAQ' };
+    const mockAnalysis = {
+      intent: 'INQUIRY',
+      priority: 'LOW',
+      suggestedResolution: 'Check FAQ',
+    };
     (service.analyzeGrievance as jest.Mock).mockResolvedValue(mockAnalysis);
-    
-    const mockCreated = { ...mockAnalysis, idempotencyKey: 'new-key', originalText: 'help' };
+
+    const mockCreated = {
+      ...mockAnalysis,
+      idempotencyKey: 'new-key',
+      originalText: 'help',
+    };
     repository.create.mockReturnValue(mockCreated);
     repository.save.mockResolvedValue(mockCreated);
 
     const result = await controller.analyze('help', 'new-key');
 
     expect(service.analyzeGrievance).toHaveBeenCalledWith('help');
-    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
-      originalText: 'help',
-      intent: 'INQUIRY',
-      priority: 'LOW',
-      suggestedResolution: 'Check FAQ',
-      idempotencyKey: 'new-key',
-      status: 'OPEN',
-    }));
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalText: 'help',
+        intent: 'INQUIRY',
+        priority: 'LOW',
+        suggestedResolution: 'Check FAQ',
+        idempotencyKey: 'new-key',
+        status: 'OPEN',
+      }),
+    );
     expect(repository.save).toHaveBeenCalledWith(mockCreated);
     expect(result).toEqual({
       success: true,
@@ -79,10 +91,14 @@ describe('GrievanceController', () => {
   });
 
   it('should throw BadRequestException if text is missing', async () => {
-    await expect(controller.analyze('', 'key')).rejects.toThrow(BadRequestException);
+    await expect(controller.analyze('', 'key')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should throw BadRequestException if idempotencyKey is missing', async () => {
-    await expect(controller.analyze('text', '')).rejects.toThrow(BadRequestException);
+    await expect(controller.analyze('text', '')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

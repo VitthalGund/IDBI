@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Card, StatusPill, colors, typography } from '@trustbank/ui-kit';
-import { apiClient } from '../utils/apiClient';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { Card, StatusPill, colors, typography } from "@trustbank/ui-kit";
+import { apiClient } from "../utils/apiClient";
 
 interface HomeScreenProps {
   isProMode: boolean;
@@ -10,8 +18,13 @@ interface HomeScreenProps {
   onNavigateDevices?: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onNavigateMsme, onNavigateDevices }) => {
-  const [grievanceText, setGrievanceText] = useState('');
+export const HomeScreen: React.FC<HomeScreenProps> = ({
+  isProMode,
+  deviceId,
+  onNavigateMsme,
+  onNavigateDevices,
+}) => {
+  const [grievanceText, setGrievanceText] = useState("");
   const [grievanceResponse, setGrievanceResponse] = useState<any>(null);
   const [nudges, setNudges] = useState<any[]>([]);
 
@@ -28,62 +41,110 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
 
   const fetchAccount = async () => {
     try {
-      const response = await apiClient.request(`/accounts/me`, 'GET');
+      const response = await apiClient.request(`/accounts/me`, "GET");
       setAccount(response);
     } catch (e) {
-      console.warn('Failed to fetch account', e);
+      console.warn("Failed to fetch account", e);
     }
   };
 
   const fetchNudges = async () => {
     try {
-      const response = await apiClient.request(`/transactions/nudges`, 'GET');
+      const response = await apiClient.request(`/transactions/nudges`, "GET");
       if (Array.isArray(response)) {
         setNudges(response);
       }
     } catch (e) {
-      console.warn('Failed to fetch nudges', e);
+      console.warn("Failed to fetch nudges", e);
     }
   };
 
   const submitGrievance = async () => {
     if (!grievanceText) return;
     try {
-      const response = await apiClient.request('/grievance/analyze', 'POST', { text: grievanceText });
+      const response = await apiClient.request("/grievance/analyze", "POST", {
+        text: grievanceText,
+      });
       if (response.cached) {
-        Alert.alert('Info', 'Loaded cached grievance from previous offline submission.');
+        Alert.alert(
+          "Info",
+          "Loaded cached grievance from previous offline submission.",
+        );
       }
       setGrievanceResponse(response.data);
-      setGrievanceText('');
+      setGrievanceText("");
     } catch (e) {
-      Alert.alert('Error', e.message);
+      Alert.alert("Error", (e as Error).message);
     }
   };
 
   const renderGrievanceCard = () => {
     if (!grievanceResponse) return null;
-    
+
     // Calculate days remaining
     const deadline = new Date(grievanceResponse.internalDeadline);
     const today = new Date();
-    const daysRemaining = Math.max(0, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 3600 * 24)));
-    
+    const daysRemaining = Math.max(
+      0,
+      Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 3600 * 24)),
+    );
+
     return (
-      <Card style={{ marginTop: 24, borderColor: colors.statusWarn, borderWidth: 1 }}>
+      <Card
+        style={{
+          marginTop: 24,
+          borderColor: colors.statusWarn,
+          borderWidth: 1,
+        }}
+      >
         <Text style={typography.h2}>Grievance Tracker (RB-IOS)</Text>
-        <Text style={[typography.body, { marginTop: 8 }]}>Status: {grievanceResponse.status}</Text>
+        <Text style={[typography.body, { marginTop: 8 }]}>
+          Status: {grievanceResponse.status}
+        </Text>
         <Text style={typography.body}>Intent: {grievanceResponse.intent}</Text>
-        <Text style={typography.body}>Severity: {grievanceResponse.severity}/5</Text>
-        
-        {grievanceResponse.status !== 'RESOLVED' && (
-          <Text style={[typography.body, { color: colors.statusWarn, marginTop: 8, fontWeight: 'bold' }]}>
+        <Text style={typography.body}>
+          Severity: {grievanceResponse.severity}/5
+        </Text>
+        {grievanceResponse.reason && (
+          <Text
+            style={[
+              typography.caption,
+              { marginTop: 4, color: colors.textSecondary },
+            ]}
+          >
+            AI Reasoning: {grievanceResponse.reason}
+          </Text>
+        )}
+
+        {grievanceResponse.status !== "RESOLVED" && (
+          <Text
+            style={[
+              typography.body,
+              { color: colors.statusWarn, marginTop: 8, fontWeight: "bold" },
+            ]}
+          >
             SLA: {daysRemaining} days remaining
           </Text>
         )}
-        
-        {grievanceResponse.status !== 'RESOLVED' && daysRemaining <= 0 && (
-          <TouchableOpacity style={{ marginTop: 12, backgroundColor: colors.statusError, padding: 8, borderRadius: 4 }}>
-            <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>Escalate to RBI Ombudsman</Text>
+
+        {grievanceResponse.status !== "RESOLVED" && daysRemaining <= 0 && (
+          <TouchableOpacity
+            style={{
+              marginTop: 12,
+              backgroundColor: colors.statusDanger,
+              padding: 8,
+              borderRadius: 4,
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                textAlign: "center",
+                fontWeight: "bold",
+              }}
+            >
+              Escalate to RBI Ombudsman
+            </Text>
           </TouchableOpacity>
         )}
       </Card>
@@ -110,17 +171,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.greeting}>Good Morning!</Text>
-        
+
         <Card style={styles.largeTile}>
           <Text style={styles.tileTitle}>Your Balance</Text>
-          <Text style={styles.tileValue}>₹{account ? account.balance.toLocaleString() : '...'}</Text>
+          <Text style={styles.tileValue}>
+            ₹{account ? account.balance.toLocaleString() : "..."}
+          </Text>
         </Card>
 
         <View style={styles.row}>
           <Card style={[styles.largeTile, { flex: 1, marginRight: 8 }]}>
             <Text style={styles.tileTitle}>Send Money</Text>
           </Card>
-          
+
           <Card style={[styles.largeTile, { flex: 1, marginLeft: 8 }]}>
             <Text style={styles.tileTitle}>Get Help</Text>
           </Card>
@@ -138,8 +201,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
       <Text style={styles.greeting}>Dashboard Overview</Text>
 
       {nudges.length > 0 && (
-        <Card style={{ borderColor: colors.statusWarn, borderWidth: 1, marginBottom: 16 }}>
-          <Text style={[typography.h2, { color: colors.statusWarn }]}>Security Nudges</Text>
+        <Card
+          style={{
+            borderColor: colors.statusWarn,
+            borderWidth: 1,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={[typography.h2, { color: colors.statusWarn }]}>
+            Security Nudges
+          </Text>
           {nudges.map((nudge, index) => (
             <View key={index} style={styles.nudgeItem}>
               <Text style={typography.body}>⚠️ {nudge.anomalyReason}</Text>
@@ -151,34 +222,79 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
       {onNavigateMsme && (
         <TouchableOpacity onPress={onNavigateMsme} style={{ marginBottom: 16 }}>
           <Card style={{ backgroundColor: colors.brandOrange500 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <View>
-                <Text style={[typography.h2, { color: colors.surfaceWhite }]}>MSME Cash-Flow</Text>
-                <Text style={[typography.caption, { color: colors.surfaceWhite, marginTop: 4 }]}>View working capital & invoices</Text>
+                <Text style={[typography.h2, { color: colors.surfaceWhite }]}>
+                  MSME Cash-Flow
+                </Text>
+                <Text
+                  style={[
+                    typography.caption,
+                    { color: colors.surfaceWhite, marginTop: 4 },
+                  ]}
+                >
+                  View working capital & invoices
+                </Text>
               </View>
-              <Text style={{ fontSize: 24, color: colors.surfaceWhite }}>→</Text>
+              <Text style={{ fontSize: 24, color: colors.surfaceWhite }}>
+                →
+              </Text>
             </View>
           </Card>
         </TouchableOpacity>
       )}
 
       {onNavigateDevices && (
-        <TouchableOpacity onPress={onNavigateDevices} style={{ marginBottom: 16 }}>
-          <Card style={{ backgroundColor: colors.surfaceWhite, borderColor: colors.brandTeal900, borderWidth: 1 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={onNavigateDevices}
+          style={{ marginBottom: 16 }}
+        >
+          <Card
+            style={{
+              backgroundColor: colors.surfaceWhite,
+              borderColor: colors.brandTeal900,
+              borderWidth: 1,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <View>
-                <Text style={[typography.h2, { color: colors.brandTeal900 }]}>Manage Devices</Text>
-                <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>View and revoke trusted devices</Text>
+                <Text style={[typography.h2, { color: colors.brandTeal900 }]}>
+                  Manage Devices
+                </Text>
+                <Text
+                  style={[
+                    typography.caption,
+                    { color: colors.textSecondary, marginTop: 4 },
+                  ]}
+                >
+                  View and revoke trusted devices
+                </Text>
               </View>
-              <Text style={{ fontSize: 24, color: colors.brandTeal900 }}>→</Text>
+              <Text style={{ fontSize: 24, color: colors.brandTeal900 }}>
+                →
+              </Text>
             </View>
           </Card>
         </TouchableOpacity>
       )}
-      
+
       <Card>
         <Text style={typography.bodyLarge}>Total Balance</Text>
-        <Text style={typography.h1}>₹{account ? account.balance.toLocaleString() : '...'}</Text>
+        <Text style={typography.h1}>
+          ₹{account ? account.balance.toLocaleString() : "..."}
+        </Text>
         <View style={{ marginTop: 8 }}>
           <StatusPill status="SUCCESS" label="+ 5% vs last month" />
         </View>
@@ -191,7 +307,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
             <Text style={typography.body}>Client Payment A</Text>
             <Text style={typography.caption}>1 day ago</Text>
           </View>
-          <Text style={[typography.body, { color: colors.statusSuccess }]}>+₹50,000</Text>
+          <Text style={[typography.body, { color: colors.statusSuccess }]}>
+            +₹50,000
+          </Text>
         </View>
         <View style={styles.transaction}>
           <View>
@@ -220,8 +338,8 @@ const styles = StyleSheet.create({
   },
   largeTile: {
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   tileTitle: {
     ...typography.bodyLarge,
@@ -233,12 +351,12 @@ const styles = StyleSheet.create({
     color: colors.brandTeal900,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   transaction: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.surfaceFog,
@@ -257,17 +375,17 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 12,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   button: {
     backgroundColor: colors.brandTeal900,
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
     ...typography.body,
     color: colors.surfaceWhite,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

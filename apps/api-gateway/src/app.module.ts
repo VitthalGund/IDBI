@@ -16,13 +16,11 @@ import { MsmeModule } from './msme/msme.module';
 import { AccountModule } from './account/account.module';
 import { Account } from './account/entities/account.entity';
 import { DeviceRegistration } from './account/entities/device-registration.entity';
+import { Invoice } from './msme/entities/invoice.entity';
 
 const isTest = process.env.NODE_ENV === 'test';
 
-const providers: any[] = [
-  AppService,
-  Reflector,
-];
+const providers: any[] = [AppService, Reflector];
 
 if (!isTest) {
   providers.push({
@@ -37,10 +35,12 @@ if (!isTest) {
       envFilePath: '.env.local',
       isGlobal: true,
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 20,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 20,
+      },
+    ]),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -50,7 +50,14 @@ if (!isTest) {
           return {
             type: 'sqljs',
             autoSave: false,
-            entities: [Grievance, TrustEvent, Transaction, Account, DeviceRegistration],
+            entities: [
+              Grievance,
+              TrustEvent,
+              Transaction,
+              Account,
+              DeviceRegistration,
+              Invoice,
+            ],
             synchronize: true,
             dropSchema: true,
           };
@@ -62,7 +69,14 @@ if (!isTest) {
           username: configService.get<string>('DB_USER', 'admin'),
           password: configService.get<string>('DB_PASSWORD', 'password'),
           database: configService.get<string>('DB_NAME', 'trustbank'),
-          entities: [Grievance, TrustEvent, Transaction, Account, DeviceRegistration],
+          entities: [
+            Grievance,
+            TrustEvent,
+            Transaction,
+            Account,
+            DeviceRegistration,
+            Invoice,
+          ],
           synchronize: true, // For dev only
         };
       },

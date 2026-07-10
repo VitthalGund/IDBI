@@ -61,13 +61,23 @@ describe('AuthController', () => {
   });
 
   it('verifyOtp records event and returns token on 123456', async () => {
-    const result = await controller.verifyOtp('demouser', '123456', 'device-untrusted');
+    const result = await controller.verifyOtp(
+      'demouser',
+      '123456',
+      'device-untrusted',
+    );
     expect(result.success).toBe(true);
     expect(result.token).toContain('mock-jwt-token');
-    expect(service.recordTrustEvent).toHaveBeenCalledWith('device-untrusted', 5, 'Successful OTP verification');
+    expect(service.recordTrustEvent).toHaveBeenCalledWith(
+      'device-untrusted',
+      5,
+      'Successful OTP verification',
+    );
   });
 
   it('verifyOtp throws UnauthorizedException on incorrect OTP', async () => {
-    await expect(controller.verifyOtp('demouser', '000000', 'device-untrusted')).rejects.toThrow(UnauthorizedException);
+    await expect(
+      controller.verifyOtp('demouser', '000000', 'device-untrusted'),
+    ).rejects.toThrow(UnauthorizedException);
   });
 });

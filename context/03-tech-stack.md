@@ -1,52 +1,58 @@
 # 03 — Tech Stack & Tools
 
 ## 1. Mobile
-| Tool | Purpose |
-|---|---|
-| React Native + Expo | Cross-platform app, fast iteration, easy demo deployment via Expo Go |
-| TypeScript | Type safety across the whole stack |
-| React Navigation | Screen/tab navigation |
-| Zustand | Lightweight client state (mode toggle, offline queue state) |
-| AsyncStorage | Local cache + offline action queue |
-| React Native Testing Library + Jest | Component tests |
-| Reanimated (optional) | Smooth mode-switch transition — nice-to-have polish only |
+
+| Tool                                | Purpose                                                              |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| React Native + Expo                 | Cross-platform app, fast iteration, easy demo deployment via Expo Go |
+| TypeScript                          | Type safety across the whole stack                                   |
+| React Navigation                    | Screen/tab navigation                                                |
+| Zustand                             | Lightweight client state (mode toggle, offline queue state)          |
+| AsyncStorage                        | Local cache + offline action queue                                   |
+| React Native Testing Library + Jest | Component tests                                                      |
+| Reanimated (optional)               | Smooth mode-switch transition — nice-to-have polish only             |
 
 ## 2. Backend
-| Tool | Purpose |
-|---|---|
-| Node.js + NestJS | Monolithic backend housing Auth, Grievance, Anomaly, and MSME modules |
-| TypeORM | Postgres access, entity mapping |
-| @nestjs/throttler | Rate limiting |
-| @nestjs/jwt | JWT token generation and verification |
-| Jest + Supertest | Backend unit + integration tests |
+
+| Tool              | Purpose                                                               |
+| ----------------- | --------------------------------------------------------------------- |
+| Node.js + NestJS  | Monolithic backend housing Auth, Grievance, Anomaly, and MSME modules |
+| TypeORM           | Postgres access, entity mapping                                       |
+| @nestjs/throttler | Rate limiting                                                         |
+| @nestjs/jwt       | JWT token generation and verification                                 |
+| Jest + Supertest  | Backend unit + integration tests                                      |
 
 ## 3. Data & AI
-| Tool | Purpose |
-|---|---|
-| Anthropic/OpenAI-compatible LLM API | Grievance text classification (category/severity/ETA) |
+
+| Tool                                                | Purpose                                                                                               |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Anthropic/OpenAI-compatible LLM API                 | Grievance text classification (category/severity/ETA)                                                 |
 | Custom rule engine (plain TypeScript, no framework) | Anomaly nudges, adaptive-auth trust scoring, and the offline fallback classifier for grievance triage |
-| Postgres | System of record for tickets, mock accounts/transactions, MSME invoices |
+| Postgres                                            | System of record for tickets, mock accounts/transactions, MSME invoices                               |
 
 _No custom ML model training is required or recommended — see
 `plan/04-data-and-models.md` for the full reasoning, since the team is
 full-stack/mobile-strong and lighter on ML._
 
 ## 4. Infra & Dev Tooling
-| Tool | Purpose |
-|---|---|
-| Docker + docker-compose | Local Postgres and API gateway |
-| GitHub + GitHub Actions | Repo hosting, CI (lint + test on push) |
-| ESLint (airbnb-typescript) + Prettier | Code style |
-| Husky + lint-staged | Pre-commit enforcement |
+
+| Tool                                  | Purpose                                |
+| ------------------------------------- | -------------------------------------- |
+| Docker + docker-compose               | Local Postgres and API gateway         |
+| GitHub + GitHub Actions               | Repo hosting, CI (lint + test on push) |
+| ESLint (airbnb-typescript) + Prettier | Code style                             |
+| Husky + lint-staged                   | Pre-commit enforcement                 |
 
 ## 5. Design & Deck
-| Tool | Purpose |
-|---|---|
-| Figma (optional, time-permitting) | Wireframes for deck slide 6 |
-| PowerPoint (official IDBI Innovate template) | Submission deck |
-| Loom / OBS | Demo video recording |
+
+| Tool                                         | Purpose                     |
+| -------------------------------------------- | --------------------------- |
+| Figma (optional, time-permitting)            | Wireframes for deck slide 6 |
+| PowerPoint (official IDBI Innovate template) | Submission deck             |
+| Loom / OBS                                   | Demo video recording        |
 
 ## 6. Explicitly Avoided (and why)
+
 - **Kubernetes / multi-region infra** — unnecessary complexity for a 36–48 hr
   build and a single-device demo.
 - **Custom-trained ML models (fraud, NLP)** — no reliable labeled dataset

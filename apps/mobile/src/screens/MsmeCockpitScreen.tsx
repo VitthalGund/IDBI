@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Card, colors, typography, StatusPill } from '@trustbank/ui-kit';
-import { apiClient } from '../utils/apiClient';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { Card, colors, typography, StatusPill } from "@trustbank/ui-kit";
+import { apiClient } from "../utils/apiClient";
 
 interface MsmeCockpitScreenProps {
   onBack: () => void;
 }
 
-export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({ onBack }) => {
+export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({
+  onBack,
+}) => {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
@@ -16,10 +24,10 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({ onBack }) 
 
   const fetchCashflow = async () => {
     try {
-      const response = await apiClient.request('/msme/cashflow', 'GET');
+      const response = await apiClient.request("/msme/cashflow", "GET");
       setData(response);
     } catch (e) {
-      console.warn('Failed to fetch MSME data', e);
+      console.warn("Failed to fetch MSME data", e);
     }
   };
 
@@ -41,8 +49,15 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({ onBack }) 
 
       {data.workingCapitalNudge && (
         <Card style={styles.nudgeCard}>
-          <Text style={[typography.h2, { color: colors.surfaceWhite }]}>Working Capital Alert</Text>
-          <Text style={[typography.body, { color: colors.surfaceWhite, marginTop: 4 }]}>
+          <Text style={[typography.h2, { color: colors.surfaceWhite }]}>
+            Working Capital Alert
+          </Text>
+          <Text
+            style={[
+              typography.body,
+              { color: colors.surfaceWhite, marginTop: 4 },
+            ]}
+          >
             {data.workingCapitalNudge}
           </Text>
           <TouchableOpacity style={styles.nudgeButton}>
@@ -54,13 +69,20 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({ onBack }) 
       <View style={styles.row}>
         <Card style={[styles.statCard, { marginRight: 8 }]}>
           <Text style={typography.caption}>Cash In (This Month)</Text>
-          <Text style={[typography.h2, { color: colors.statusSuccess, marginTop: 4 }]}>
+          <Text
+            style={[
+              typography.h2,
+              { color: colors.statusSuccess, marginTop: 4 },
+            ]}
+          >
             +₹{(data.cashIn / 100000).toFixed(1)}L
           </Text>
         </Card>
         <Card style={[styles.statCard, { marginLeft: 8 }]}>
           <Text style={typography.caption}>Cash Out (This Month)</Text>
-          <Text style={[typography.h2, { color: colors.statusError, marginTop: 4 }]}>
+          <Text
+            style={[typography.h2, { color: colors.statusDanger, marginTop: 4 }]}
+          >
             -₹{(data.cashOut / 100000).toFixed(1)}L
           </Text>
         </Card>
@@ -70,11 +92,63 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({ onBack }) 
         <Text style={typography.h2}>Pending GST Invoices</Text>
         <View style={{ marginTop: 12 }}>
           <Text style={typography.h1}>{data.pendingInvoicesCount}</Text>
-          <Text style={typography.body}>Totaling ₹{(data.pendingInvoicesAmount / 100000).toFixed(1)}L</Text>
+          <Text style={typography.body}>
+            Totaling ₹{(data.pendingInvoicesAmount / 100000).toFixed(1)}L
+          </Text>
         </View>
         <View style={{ marginTop: 16 }}>
           <StatusPill status="PENDING" label="Awaiting Payment" />
         </View>
+
+        {data.invoices && data.invoices.length > 0 && (
+          <View
+            style={{
+              marginTop: 24,
+              borderTopWidth: 1,
+              borderTopColor: colors.surfaceFog,
+              paddingTop: 16,
+            }}
+          >
+            <Text style={typography.bodyLarge}>Recent Invoices</Text>
+            {data.invoices.map((inv: any, idx: number) => (
+              <View
+                key={idx}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginTop: 12,
+                }}
+              >
+                <View>
+                  <Text style={typography.body}>{inv.invoiceNumber}</Text>
+                  <Text style={typography.caption}>
+                    {new Date(inv.dueDate).toLocaleDateString()}
+                  </Text>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={typography.body}>
+                    ₹{inv.amount.toLocaleString()}
+                  </Text>
+                  <Text
+                    style={[
+                      typography.caption,
+                      {
+                        color:
+                          inv.status === "OVERDUE"
+                            ? colors.statusDanger
+                            : inv.status === "PAID"
+                              ? colors.statusSuccess
+                              : colors.statusWarn,
+                      },
+                    ]}
+                  >
+                    {inv.status}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </Card>
     </ScrollView>
   );
@@ -87,8 +161,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   backButton: {
     marginBottom: 16,
@@ -96,7 +170,7 @@ const styles = StyleSheet.create({
   backText: {
     ...typography.body,
     color: colors.brandTeal600,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   title: {
     ...typography.h1,
@@ -113,15 +187,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   nudgeButtonText: {
     color: colors.brandOrange500,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 12,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 16,
   },
   statCard: {

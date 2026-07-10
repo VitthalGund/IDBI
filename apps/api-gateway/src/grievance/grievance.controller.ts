@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Headers, BadRequestException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,7 +24,7 @@ export class GrievanceController {
   @Post('analyze')
   async analyze(
     @Body('text') text: string,
-    @Headers('idempotency-key') idempotencyKey: string
+    @Headers('idempotency-key') idempotencyKey: string,
   ) {
     if (!text) {
       throw new BadRequestException('Text is required');
@@ -27,7 +34,9 @@ export class GrievanceController {
     }
 
     // Check if the idempotencyKey exists in the DB
-    const existing = await this.grievanceRepository.findOne({ where: { idempotencyKey } });
+    const existing = await this.grievanceRepository.findOne({
+      where: { idempotencyKey },
+    });
     if (existing) {
       return {
         success: true,
@@ -39,7 +48,7 @@ export class GrievanceController {
 
     // Call Gemini API
     const analysis = await this.grievanceService.analyzeGrievance(text);
-    
+
     // Save to DB
     const internalDeadline = new Date();
     internalDeadline.setDate(internalDeadline.getDate() + 30); // SLA deadline is 30 days
@@ -55,7 +64,7 @@ export class GrievanceController {
       idempotencyKey,
       status: 'OPEN',
     });
-    
+
     await this.grievanceRepository.save(grievance);
 
     return {
@@ -65,4 +74,3 @@ export class GrievanceController {
     };
   }
 }
-

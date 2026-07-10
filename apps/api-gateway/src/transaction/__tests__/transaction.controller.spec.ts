@@ -33,7 +33,13 @@ describe('TransactionController', () => {
     it('throws UnauthorizedException if device is not registered', async () => {
       accountService.getDevice.mockResolvedValue(null);
       await expect(
-        controller.transferFunds({ user: { deviceId: 'dev-1' } }, 100, 'Bob', Date.now().toString(), 'dummyhmac')
+        controller.transferFunds(
+          { user: { deviceId: 'dev-1' } },
+          100,
+          'Bob',
+          Date.now().toString(),
+          'dummyhmac',
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -41,7 +47,13 @@ describe('TransactionController', () => {
       accountService.getDevice.mockResolvedValue({ deviceSecret: 'secret' });
       const oldTimestamp = (Date.now() - 70000).toString();
       await expect(
-        controller.transferFunds({ user: { deviceId: 'dev-1' } }, 100, 'Bob', oldTimestamp, 'dummyhmac')
+        controller.transferFunds(
+          { user: { deviceId: 'dev-1' } },
+          100,
+          'Bob',
+          oldTimestamp,
+          'dummyhmac',
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -49,7 +61,13 @@ describe('TransactionController', () => {
       accountService.getDevice.mockResolvedValue({ deviceSecret: 'secret' });
       const timestamp = Date.now().toString();
       await expect(
-        controller.transferFunds({ user: { deviceId: 'dev-1' } }, 100, 'Bob', timestamp, 'invalidhmac')
+        controller.transferFunds(
+          { user: { deviceId: 'dev-1' } },
+          100,
+          'Bob',
+          timestamp,
+          'invalidhmac',
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -58,16 +76,19 @@ describe('TransactionController', () => {
       const timestamp = Date.now().toString();
       const amount = 100;
       const recipient = 'Bob';
-      
+
       const message = `${amount}:${recipient}:${timestamp}`;
-      const validHmac = crypto.createHmac('sha256', 'secret').update(message).digest('hex');
+      const validHmac = crypto
+        .createHmac('sha256', 'secret')
+        .update(message)
+        .digest('hex');
 
       const result = await controller.transferFunds(
         { user: { deviceId: 'dev-1' } },
         amount,
         recipient,
         timestamp,
-        validHmac
+        validHmac,
       );
 
       expect(result.success).toBe(true);

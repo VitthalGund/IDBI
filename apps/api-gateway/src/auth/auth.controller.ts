@@ -1,4 +1,10 @@
-import { Controller, Post, Body, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -68,7 +74,11 @@ export class AuthController {
     }
 
     // Success: Append a positive trust score to the device
-    await this.authService.recordTrustEvent(deviceId, 5, 'Successful OTP verification');
+    await this.authService.recordTrustEvent(
+      deviceId,
+      5,
+      'Successful OTP verification',
+    );
 
     const token = this.jwtService.sign({ username, sub: deviceId });
 
@@ -76,6 +86,19 @@ export class AuthController {
       success: true,
       token,
     };
+  }
+
+  @Post('trust-event')
+  async addTrustEvent(
+    @Body('deviceId') deviceId: string,
+    @Body('delta') delta: number,
+    @Body('reason') reason: string,
+  ) {
+    if (!deviceId || delta === undefined || !reason) {
+      throw new BadRequestException('deviceId, delta, and reason are required');
+    }
+    await this.authService.recordTrustEvent(deviceId, delta, reason);
+    return { success: true };
   }
 
   @Post('reset-trust')

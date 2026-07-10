@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Body, Param, Request, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { AccountService } from './account.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -21,11 +31,18 @@ export class AccountController {
   ) {
     const deviceId = req.user.deviceId || req.user.sub; // Handle fallback if auth guard sets sub differently
     const username = req.user.username;
-    
+
     if (!deviceLabel || !deviceSecret) {
-      throw new BadRequestException('deviceLabel and deviceSecret are required');
+      throw new BadRequestException(
+        'deviceLabel and deviceSecret are required',
+      );
     }
-    const device = await this.accountService.registerDevice(deviceId, deviceLabel, deviceSecret, username);
+    const device = await this.accountService.registerDevice(
+      deviceId,
+      deviceLabel,
+      deviceSecret,
+      username,
+    );
     return { success: true, deviceId: device.deviceId };
   }
 

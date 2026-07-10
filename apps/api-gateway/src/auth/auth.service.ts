@@ -10,14 +10,16 @@ export class AuthService {
     private trustRepository: Repository<TrustEvent>,
   ) {}
 
-  async evaluateTrustScore(deviceId: string): Promise<{ score: number; trusted: boolean; reason: string }> {
+  async evaluateTrustScore(
+    deviceId: string,
+  ): Promise<{ score: number; trusted: boolean; reason: string }> {
     const events = await this.trustRepository.find({ where: { deviceId } });
     const score = events.reduce((sum, e) => sum + e.scoreDelta, 0);
-    
+
     const threshold = 5;
     const trusted = score >= threshold;
     let reason = '';
-    
+
     if (trusted) {
       reason = `Device fingerprint matches. Past successful MFA logins established a high trust score (${score}/${threshold}).`;
     } else if (events.length === 0) {
@@ -29,7 +31,11 @@ export class AuthService {
     return { score, trusted, reason };
   }
 
-  async recordTrustEvent(deviceId: string, delta: number, reason: string): Promise<TrustEvent> {
+  async recordTrustEvent(
+    deviceId: string,
+    delta: number,
+    reason: string,
+  ): Promise<TrustEvent> {
     const event = this.trustRepository.create({
       deviceId,
       scoreDelta: delta,

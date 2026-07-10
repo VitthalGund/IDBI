@@ -1,4 +1,13 @@
-import { Controller, Get, Query, UseGuards, Request, Post, Body, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  Request,
+  Post,
+  Body,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransactionService } from './transaction.service';
 import { AccountService } from '../account/account.service';
@@ -38,7 +47,10 @@ export class TransactionController {
   ) {
     const deviceId = req.user.deviceId;
     if (!amount || !type || !merchant) {
-      return { success: false, message: 'Amount, type, and merchant are required' };
+      return {
+        success: false,
+        message: 'Amount, type, and merchant are required',
+      };
     }
     const transaction = await this.transactionService.createTransaction({
       amount,
@@ -58,9 +70,12 @@ export class TransactionController {
     @Body('hmacToken') hmacToken: string,
   ) {
     const deviceId = req.user.deviceId;
-    
+
     if (!amount || !recipient || !hmacToken || !timestamp) {
-      return { success: false, message: 'Amount, recipient, timestamp, and hmacToken are required' };
+      return {
+        success: false,
+        message: 'Amount, recipient, timestamp, and hmacToken are required',
+      };
     }
 
     // AFA Compliance Check
@@ -70,15 +85,21 @@ export class TransactionController {
     }
 
     const ts = parseInt(timestamp, 10);
-    if (isNaN(ts) || Date.now() - ts > 60000) { // 60s window
+    if (isNaN(ts) || Date.now() - ts > 60000) {
+      // 60s window
       throw new UnauthorizedException('Transfer request expired');
     }
 
     const message = `${amount}:${recipient}:${timestamp}`;
-    const expectedHmac = crypto.createHmac('sha256', device.deviceSecret).update(message).digest('hex');
+    const expectedHmac = crypto
+      .createHmac('sha256', device.deviceSecret)
+      .update(message)
+      .digest('hex');
 
     if (hmacToken !== expectedHmac) {
-      throw new UnauthorizedException('Invalid AFA HMAC token. Transfer denied.');
+      throw new UnauthorizedException(
+        'Invalid AFA HMAC token. Transfer denied.',
+      );
     }
 
     const transaction = await this.transactionService.createTransaction({
@@ -87,7 +108,7 @@ export class TransactionController {
       merchant: recipient,
       deviceId,
     });
-    
+
     return { success: true, transaction };
   }
 }

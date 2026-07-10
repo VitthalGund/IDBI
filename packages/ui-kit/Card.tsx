@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, ViewProps } from 'react-native';
-import { colors } from './theme';
+import React from "react";
+import { View, StyleSheet, ViewProps } from "react-native";
+import { colors } from "./theme";
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceFog,
     padding: 16,
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

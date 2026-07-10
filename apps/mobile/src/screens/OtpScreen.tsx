@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { colors, typography, Card } from '@trustbank/ui-kit';
-import { apiClient, setAuthToken } from '../utils/apiClient';
-import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { colors, typography, Card } from "@trustbank/ui-kit";
+import { apiClient, setAuthToken } from "../utils/apiClient";
+import * as SecureStore from "expo-secure-store";
+import * as Crypto from "expo-crypto";
 
 interface OtpScreenProps {
   username: string;
@@ -13,40 +20,44 @@ interface OtpScreenProps {
   onCancel: () => void;
 }
 
-export const OtpScreen: React.FC<OtpScreenProps> = ({ 
-  username, 
-  deviceId, 
-  trustReason, 
-  onOtpSuccess, 
-  onCancel 
+export const OtpScreen: React.FC<OtpScreenProps> = ({
+  username,
+  deviceId,
+  trustReason,
+  onOtpSuccess,
+  onCancel,
 }) => {
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isVerified, setIsVerified] = useState(false);
-  const [tempToken, setTempToken] = useState('');
+  const [tempToken, setTempToken] = useState("");
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
-      setError('OTP must be 6 digits');
+      setError("OTP must be 6 digits");
       return;
     }
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const data = await apiClient.request('/auth/verify-otp', 'POST', { username, otp, deviceId });
+      const data = await apiClient.request("/auth/verify-otp", "POST", {
+        username,
+        otp,
+        deviceId,
+      });
       setLoading(false);
 
       if (data.success) {
         setTempToken(data.token);
         setIsVerified(true);
       } else {
-        setError(data.message || 'Verification failed. Please try again.');
+        setError(data.message || "Verification failed. Please try again.");
       }
     } catch (err) {
       setLoading(false);
-      setError('Network error. Check your server connection.');
+      setError("Network error. Check your server connection.");
     }
   };
 
@@ -54,7 +65,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
     if (!register) {
       // If they refuse registration, we clear the trust event we just recorded in the backend
       try {
-        await apiClient.request('/auth/reset-trust', 'POST', { deviceId });
+        await apiClient.request("/auth/reset-trust", "POST", { deviceId });
       } catch (e) {
         // Ignore error on reset, we just proceed
       }
@@ -62,16 +73,16 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       // Generate device secret and register device
       try {
         const secret = Crypto.randomUUID();
-        await SecureStore.setItemAsync('deviceSecret', secret);
-        
+        await SecureStore.setItemAsync("deviceSecret", secret);
+
         // Temporarily set token to authorize registration
         setAuthToken(tempToken);
-        await apiClient.request('/accounts/devices', 'POST', {
-          deviceLabel: 'My Device',
-          deviceSecret: secret
+        await apiClient.request("/accounts/devices", "POST", {
+          deviceLabel: "My Device",
+          deviceSecret: secret,
         });
       } catch (e) {
-        console.warn('Failed to register device:', e);
+        console.warn("Failed to register device:", e);
       }
     }
     onOtpSuccess(tempToken);
@@ -82,16 +93,22 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       <View style={styles.container}>
         <Card style={styles.card}>
           <Text style={styles.title}>Device Registration</Text>
-          <Text style={styles.subtitle}>You successfully verified this device. Would you like to register it as a trusted device to skip OTP in the future?</Text>
-          
-          <TouchableOpacity 
-            style={styles.button} 
+          <Text style={styles.subtitle}>
+            You successfully verified this device. Would you like to register it
+            as a trusted device to skip OTP in the future?
+          </Text>
+
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => handleConsent(true)}
           >
             <Text style={styles.buttonText}>Yes, Register Device</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.cancelButton} onPress={() => handleConsent(false)}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => handleConsent(false)}
+          >
             <Text style={styles.cancelText}>No, Skip for Now</Text>
           </TouchableOpacity>
         </Card>
@@ -103,7 +120,9 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
     <View style={styles.container}>
       <Card style={styles.card}>
         <Text style={styles.title}>Step-up verification</Text>
-        <Text style={styles.subtitle}>Enter the 6-digit security code sent to your registered device.</Text>
+        <Text style={styles.subtitle}>
+          Enter the 6-digit security code sent to your registered device.
+        </Text>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -115,7 +134,9 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
         <TextInput
           style={styles.otpInput}
           value={otp}
-          onChangeText={(val) => setOtp(val.replace(/[^0-9]/g, '').substring(0, 6))}
+          onChangeText={(val) =>
+            setOtp(val.replace(/[^0-9]/g, "").substring(0, 6))
+          }
           placeholder="000000"
           keyboardType="numeric"
           textAlign="center"
@@ -124,8 +145,8 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
 
         <Text style={styles.hintText}>Demo code: 123456</Text>
 
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleVerify}
           disabled={loading}
         >
@@ -147,7 +168,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 16,
     backgroundColor: colors.surfaceFog,
   },
@@ -158,19 +179,19 @@ const styles = StyleSheet.create({
   title: {
     ...typography.h2,
     color: colors.brandTeal900,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     ...typography.caption,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
     lineHeight: 16,
   },
   reasonBox: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fef3c7',
+    backgroundColor: "#fffbeb",
+    borderColor: "#fef3c7",
     borderWidth: 1,
     padding: 10,
     borderRadius: 6,
@@ -178,28 +199,28 @@ const styles = StyleSheet.create({
   },
   reasonTitle: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#b45309',
+    fontWeight: "bold",
+    color: "#b45309",
     marginBottom: 2,
   },
   reasonText: {
     fontSize: 11,
-    color: '#78350f',
+    color: "#78350f",
   },
   errorText: {
     color: colors.statusDanger,
     marginBottom: 16,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
   },
   otpInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 6,
     padding: 14,
     fontSize: 28,
     letterSpacing: 8,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.brandTeal900,
     backgroundColor: colors.surfaceWhite,
     marginBottom: 8,
@@ -207,25 +228,25 @@ const styles = StyleSheet.create({
   hintText: {
     fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   button: {
     backgroundColor: colors.brandTeal900,
     padding: 14,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
     color: colors.surfaceWhite,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cancelButton: {
     marginTop: 14,
     padding: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelText: {
     color: colors.textSecondary,

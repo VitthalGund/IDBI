@@ -22,6 +22,7 @@ core-banking connection. This must stay true through the whole build; do not let
 scope creep pull in a real banking integration.
 
 ## 2. Boundaries (what owns what)
+
 - **Mobile app** owns: UI state, offline queue, Simple/Pro mode state, local cache
   of last-known-good screen data.
 - **API Gateway (BFF)** owns: request shaping for mobile, auth token issuance,
@@ -36,11 +37,13 @@ scope creep pull in a real banking integration.
   to core transactional data in MVP.
 
 ## 3. Storage Model
-| Store | Used for | Notes |
-|---|---|---|
+
+| Store    | Used for                                                               | Notes                                                          |
+| -------- | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Postgres | accounts, transactions, grievance tickets, MSME invoices, trust scores | single schema per module, no cross-module joins where possible |
 
 ## 4. Invariants (do not violate)
+
 1. **No real money movement.** All transaction data is seeded/mocked. Any "Pay/
    Transfer" action in the UI must hit the mock service, never a real payment rail.
 2. **BFF is the only entry point.** Mobile app never calls a downstream service URL
@@ -56,6 +59,7 @@ scope creep pull in a real banking integration.
    simple and avoids permission-logic duplication.
 
 ## 5. Process Flow (grievance triage — flagship feature)
+
 1. User submits grievance (free text + optional attachment) → BFF.
 2. Grievance Service creates ticket (status=Open), calls LLM API with redacted
    text to classify: category, severity (1–5), suggested ETA band.
@@ -66,6 +70,7 @@ scope creep pull in a real banking integration.
    IDBI's real documented 3-level, up-to-30-day escalation path in the pitch.
 
 ## 6. Process Flow (adaptive auth)
+
 1. On login, client sends device fingerprint + last-known trust signals.
 2. Auth Service scores trust (recency, device match, geo-consistency — all rule-
    based, see `plan/04-data-and-models.md`).
@@ -76,6 +81,7 @@ scope creep pull in a real banking integration.
    is itself a USP, not just a technical shortcut.
 
 ## 7. Deployment Shape (hackathon-realistic)
+
 - Single docker-compose stack: `api-gateway`, `postgres`, mobile app run via Expo Go for the demo device.
 - No Kubernetes, no multi-region — that would be over-engineering for a 36–48 hr
   build and would not help the judging criteria.

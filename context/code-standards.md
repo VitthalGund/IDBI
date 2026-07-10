@@ -1,6 +1,7 @@
 # Code Standards — IDBI TrustBank+
 
 ## 1. Languages & Frameworks
+
 - **Mobile:** React Native + Expo, TypeScript strict mode.
 - **Backend (BFF + services):** Node.js + NestJS, TypeScript strict mode.
 - **DB access:** Prisma ORM against Postgres.
@@ -8,6 +9,7 @@
   possible, via a small shared `types` package).
 
 ## 2. Repo Structure
+
 ```
 /apps
   /mobile              # Expo app
@@ -26,18 +28,21 @@
 ```
 
 ## 3. Naming Conventions
+
 - Files: `kebab-case.ts`, React components: `PascalCase.tsx`.
 - Branches: `feature/<short-desc>`, `fix/<short-desc>`.
 - Commits: Conventional Commits (`feat:`, `fix:`, `chore:`, `test:`, `docs:`).
 - API routes: `/v1/<service>/<resource>`, plural nouns (`/v1/grievance/tickets`).
 
 ## 4. Formatting & Linting
+
 - ESLint (airbnb-typescript base) + Prettier, run on pre-commit via `husky` +
   `lint-staged`. No manual style debates — config is the source of truth.
 - No `any` in TypeScript without an inline `// eslint-disable-next-line` and a
   one-line justification comment.
 
 ## 5. Error Handling
+
 - Backend: every service throws typed exceptions (`DomainError` subclasses),
   caught by a single NestJS exception filter that maps to a consistent JSON error
   shape: `{ code, message, details? }`. Never leak stack traces to the client.
@@ -47,6 +52,7 @@
   screen components.
 
 ## 6. Testing Conventions
+
 - Unit tests: Jest, co-located `*.spec.ts` next to source.
 - Mobile component tests: React Native Testing Library.
 - API integration tests: Supertest against a docker-compose test DB.
@@ -58,6 +64,7 @@
   test that would fail if it were violated.
 
 ## 7. API Contract Discipline
+
 - Every service exposes an OpenAPI spec (`@nestjs/swagger` decorators); the
   shared-types package is generated from/kept in sync with these specs, not
   hand-duplicated.
@@ -65,6 +72,7 @@
   `ai-workflow-rules.md` — architecture changes are documented before code).
 
 ## 8. Security Baseline (non-negotiable even for a hackathon build)
+
 - No secrets in source; use `.env` + `.env.example`, `.env` git-ignored.
 - All PII (name, phone, account-like fields) redacted before any LLM API call
   (regex-based redaction layer in Grievance Service — test this explicitly).

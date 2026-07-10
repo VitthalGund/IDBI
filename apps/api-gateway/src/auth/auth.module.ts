@@ -18,7 +18,10 @@ import { AccountModule } from '../account/account.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'super_secret_jwt_key_hackathon'),
+        secret: configService.get<string>(
+          'JWT_SECRET',
+          'super_secret_jwt_key_hackathon',
+        ),
         signOptions: { expiresIn: '15m' },
       }),
     }),

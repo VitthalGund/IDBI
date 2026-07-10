@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
-import { colors, typography } from './theme';
+import React from "react";
+import { View, Text, Switch, StyleSheet } from "react-native";
+import { colors, typography } from "./theme";
 
 interface ModeToggleProps {
   isProMode: boolean;
   onToggle: (value: boolean) => void;
 }
 
-export const ModeToggle: React.FC<ModeToggleProps> = ({ isProMode, onToggle }) => {
+export const ModeToggle: React.FC<ModeToggleProps> = ({
+  isProMode,
+  onToggle,
+}) => {
   return (
     <View style={styles.container}>
       <Text style={[styles.label, !isProMode && styles.active]}>Simple</Text>
@@ -24,14 +27,14 @@ export const ModeToggle: React.FC<ModeToggleProps> = ({ isProMode, onToggle }) =
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 8,
     backgroundColor: colors.surfaceWhite,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.surfaceFog,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   label: {
     ...typography.body,
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   active: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.brandTeal900,
   },
 });

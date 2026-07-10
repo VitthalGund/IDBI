@@ -2,18 +2,19 @@
 
 ## 1. Timeline Overview (36–48 hr hackathon window)
 
-| Phase | Hours | Goal |
-|---|---|---|
-| Phase 0 — Setup | 0–3 | Repo scaffold, docker-compose stack running, CI lint/test hook |
-| Phase 1 — Core Slice 1 | 3–9 | Simple/Pro UI shell with mock data |
-| Phase 2 — Core Slice 2 | 9–17 | Offline-resilient session handling |
-| Phase 3 — Core Slice 3 | 17–27 | AI grievance triage, end-to-end |
-| Phase 4 — Core Slice 4 | 27–34 | Adaptive auth demo |
-| Phase 5 — Integration | 34–38 | Wire the single demo narrative end-to-end |
-| Phase 6 — Stretch (if time) | 38–42 | One stretch feature (Anomaly or MSME) |
-| Phase 7 — Polish & rehearsal | 42–48 | Bugfix, demo script, deck snapshots, video |
+| Phase                        | Hours | Goal                                                           |
+| ---------------------------- | ----- | -------------------------------------------------------------- |
+| Phase 0 — Setup              | 0–3   | Repo scaffold, docker-compose stack running, CI lint/test hook |
+| Phase 1 — Core Slice 1       | 3–9   | Simple/Pro UI shell with mock data                             |
+| Phase 2 — Core Slice 2       | 9–17  | Offline-resilient session handling                             |
+| Phase 3 — Core Slice 3       | 17–27 | AI grievance triage, end-to-end                                |
+| Phase 4 — Core Slice 4       | 27–34 | Adaptive auth demo                                             |
+| Phase 5 — Integration        | 34–38 | Wire the single demo narrative end-to-end                      |
+| Phase 6 — Stretch (if time)  | 38–42 | One stretch feature (Anomaly or MSME)                          |
+| Phase 7 — Polish & rehearsal | 42–48 | Bugfix, demo script, deck snapshots, video                     |
 
 ## 2. Phase 0 — Setup (Detailed)
+
 1. `npx create-nx-workspace` or a plain pnpm monorepo per `code-standards.md` §2.
 2. `docker-compose.yml`: postgres, redis, minio (optional), api-gateway.
 3. Seed script: creates 2 mock accounts, 20 mock transactions, 3 mock MSME
@@ -24,6 +25,7 @@
    screen in the app shows "API: OK" from a real network call.
 
 ## 3. Phase 1 — Simple/Pro UI Shell
+
 1. Build `ui-kit` package: Card, StatusPill, ModeToggle components
    (`ui-context.md` §4).
 2. Build Home screen in both modes against seeded mock account/transaction data.
@@ -33,6 +35,7 @@
    reload; screenshots captured for the deck.
 
 ## 4. Phase 2 — Offline Resilience
+
 1. Implement `apiClient` wrapper (code-standards.md §5) with local queue
    (AsyncStorage-backed) and idempotent UUID per queued action.
 2. Simulate network loss in-app (dev toggle) for reliable demo staging — do not
@@ -42,6 +45,7 @@
    the queued action exactly once and the banner disappears correctly.
 
 ## 5. Phase 3 — AI Grievance Triage
+
 1. Grievance Service: ticket model (Open/Triaged/In-Progress/Resolved), Postgres
    table, REST endpoints (create, get, list, status stream).
 2. PII-redaction layer (regex-based) before any text leaves the service.
@@ -56,6 +60,7 @@
    ETA within a few seconds, and status visibly advances during the demo.
 
 ## 6. Phase 4 — Adaptive Auth
+
 1. Auth Service: device-fingerprint capture (device ID + basic signals),
    trust-score rules engine (`plan/04-data-and-models.md` §1).
 2. Redis-backed trust store, append-only event log (architecture invariant #5).
@@ -66,6 +71,7 @@
    on tap.
 
 ## 7. Phase 5 — Integration (the single demo narrative)
+
 1. Script the exact click-path: Home (Pro mode) → start a transfer → simulate
    connectivity drop mid-flow → reconnect → action completes without data loss →
    login again on the same device (no OTP, tap "why") → notice a transaction,
@@ -76,10 +82,12 @@
    restart or hidden reset step.
 
 ## 8. Phase 6 — Stretch (only if Phase 5 exit criteria met early)
+
 - Prefer **Anomaly Nudges** over MSME Cockpit if time is tight — it's Easy
   feasibility and reuses the existing transaction seed data with no new schema.
 
 ## 9. Phase 7 — Polish & Rehearsal
+
 1. Capture real screenshots for deck slides 6 (wireframes) and 10 (snapshots) —
    replace any placeholder mockups.
 2. Record the 3-minute demo video required by the submission (`plan/plan` link

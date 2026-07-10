@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Card, colors, typography } from '@trustbank/ui-kit';
-import { apiClient } from '../utils/apiClient';
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Card, colors, typography } from "@trustbank/ui-kit";
+import { apiClient } from "../utils/apiClient";
 
 interface MyDevicesScreenProps {
   onBack: () => void;
@@ -10,7 +18,7 @@ interface MyDevicesScreenProps {
 export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
   const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchDevices();
@@ -19,10 +27,10 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
   const fetchDevices = async () => {
     try {
       setLoading(true);
-      const data = await apiClient.request('/accounts/devices', 'GET');
+      const data = await apiClient.request("/accounts/devices", "GET");
       setDevices(data);
     } catch (e) {
-      setError('Failed to fetch registered devices');
+      setError("Failed to fetch registered devices");
     } finally {
       setLoading(false);
     }
@@ -31,11 +39,11 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
   const removeDevice = async (deviceId: string) => {
     try {
       setLoading(true);
-      await apiClient.request(`/accounts/devices/${deviceId}`, 'DELETE');
-      Alert.alert('Success', 'Device revoked successfully');
+      await apiClient.request(`/accounts/devices/${deviceId}`, "DELETE");
+      Alert.alert("Success", "Device revoked successfully");
       fetchDevices();
     } catch (e) {
-      Alert.alert('Error', 'Failed to revoke device');
+      Alert.alert("Error", "Failed to revoke device");
       setLoading(false);
     }
   };
@@ -59,11 +67,13 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
           <Card key={idx} style={styles.deviceCard}>
             <View>
               <Text style={styles.deviceLabel}>{device.deviceLabel}</Text>
-              <Text style={styles.deviceDate}>Added: {new Date(device.registeredAt).toLocaleDateString()}</Text>
+              <Text style={styles.deviceDate}>
+                Added: {new Date(device.registeredAt).toLocaleDateString()}
+              </Text>
               <Text style={styles.deviceInfo}>ID: {device.deviceId}</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.removeBtn} 
+            <TouchableOpacity
+              style={styles.removeBtn}
               onPress={() => removeDevice(device.deviceId)}
             >
               <Text style={styles.removeBtnText}>Revoke</Text>
@@ -92,7 +102,7 @@ const styles = StyleSheet.create({
   backBtnText: {
     color: colors.textSecondary,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
     color: colors.statusDanger,
@@ -100,12 +110,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.textSecondary,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   deviceCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   deviceLabel: {
@@ -130,7 +140,7 @@ const styles = StyleSheet.create({
   },
   removeBtnText: {
     color: colors.surfaceWhite,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 12,
   },
 });

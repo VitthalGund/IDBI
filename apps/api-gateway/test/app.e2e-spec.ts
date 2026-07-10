@@ -36,8 +36,7 @@ describe('App Integration E2E (Phases 1-6)', () => {
         }),
         AppModule,
       ],
-    })
-    .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
@@ -54,9 +53,13 @@ describe('App Integration E2E (Phases 1-6)', () => {
     it('POST /auth/login should return success for dummy user', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ username: 'demoUser', password: 'password123', deviceId: testDeviceId })
+        .send({
+          username: 'demoUser',
+          password: 'password123',
+          deviceId: testDeviceId,
+        })
         .expect(201);
-        
+
       expect(res.body.success).toBe(true);
       expect(res.body.requireOtp).toBe(true);
     });
@@ -66,7 +69,7 @@ describe('App Integration E2E (Phases 1-6)', () => {
         .post('/auth/verify-otp')
         .send({ username: 'demoUser', otp: '123456', deviceId: testDeviceId })
         .expect(201);
-        
+
       expect(res.body.success).toBe(true);
       expect(res.body.token).toBeDefined();
       authToken = res.body.token; // Save for subsequent tests
@@ -78,7 +81,7 @@ describe('App Integration E2E (Phases 1-6)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(res.body.balance).toBe(15000.50);
+      expect(res.body.balance).toBe(15000.5);
       expect(res.body.accountNumber).toBe('9991 2345 6789');
     });
   });
@@ -102,7 +105,11 @@ describe('App Integration E2E (Phases 1-6)', () => {
 
       // Verify at least one nudge is rapid sequence
       expect(nudgesRes.body.length).toBeGreaterThan(0);
-      expect(nudgesRes.body.some((n: any) => n.anomalyReason.includes('Rapid sequence'))).toBe(true);
+      expect(
+        nudgesRes.body.some((n: any) =>
+          n.anomalyReason.includes('Rapid sequence'),
+        ),
+      ).toBe(true);
     });
 
     it('GET /transactions/since should return recent transactions', async () => {
@@ -143,7 +150,11 @@ describe('App Integration E2E (Phases 1-6)', () => {
       const res = await request(app.getHttpServer())
         .post('/transactions/transfer')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ amount: 1000, recipient: 'John Doe', hmacToken: 'mock-hmac-token-123' })
+        .send({
+          amount: 1000,
+          recipient: 'John Doe',
+          hmacToken: 'mock-hmac-token-123',
+        })
         .expect(201);
 
       expect(res.body.success).toBe(true);
@@ -158,12 +169,13 @@ describe('App Integration E2E (Phases 1-6)', () => {
         .post('/grievance/analyze')
         .set('Authorization', `Bearer ${authToken}`)
         .set('idempotency-key', 'test-key-123')
-        .send({ text: 'My money was deducted but not credited to the merchant.' })
+        .send({
+          text: 'My money was deducted but not credited to the merchant.',
+        })
         .expect(201);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.id).toBeDefined();
-      
     });
   });
 });

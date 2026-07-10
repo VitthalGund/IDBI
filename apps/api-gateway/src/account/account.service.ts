@@ -21,40 +21,53 @@ export class AccountService implements OnModuleInit {
         deviceId: 'default-device', // this will be updated or we can just fetch first account
         accountNumber: '9991 2345 6789',
         accountName: 'Retail Savings',
-        balance: 15000.50,
+        balance: 15000.5,
         type: 'Savings',
       });
       await this.accountRepository.save({
         deviceId: 'msme-device',
         accountNumber: '8881 2345 6789',
         accountName: 'MSME Current',
-        balance: 250000.00,
+        balance: 250000.0,
         type: 'Current',
       });
     }
   }
 
-  async getAccount(deviceId: string, accountType: 'retail' | 'msme' = 'retail') {
+  async getAccount(
+    deviceId: string,
+    accountType: 'retail' | 'msme' = 'retail',
+  ) {
     let account = await this.accountRepository.findOne({ where: { deviceId } });
     if (!account) {
       // For demo purposes, assign the requested account type to the newly registered deviceId
-      const templateId = accountType === 'msme' ? 'msme-device' : 'default-device';
-      account = await this.accountRepository.findOne({ where: { deviceId: templateId } });
+      const templateId =
+        accountType === 'msme' ? 'msme-device' : 'default-device';
+      account = await this.accountRepository.findOne({
+        where: { deviceId: templateId },
+      });
       if (account) {
-         // Create a new account for this device based on the template
-         const newAccount = this.accountRepository.create({
-           ...account,
-           id: undefined,
-           deviceId: deviceId,
-         });
-         return this.accountRepository.save(newAccount);
+        // Create a new account for this device based on the template
+        const newAccount = this.accountRepository.create({
+          ...account,
+          id: undefined,
+          deviceId: deviceId,
+        });
+        return this.accountRepository.save(newAccount);
       }
     }
     return account;
   }
 
-  async registerDevice(deviceId: string, deviceLabel: string, deviceSecret: string, username: string) {
-    let device = await this.deviceRegistrationRepository.findOne({ where: { deviceId } });
+  async registerDevice(
+    deviceId: string,
+    deviceLabel: string,
+    deviceSecret: string,
+    username: string,
+  ) {
+    let device = await this.deviceRegistrationRepository.findOne({
+      where: { deviceId },
+    });
     if (!device) {
       device = this.deviceRegistrationRepository.create({
         deviceId,

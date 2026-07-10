@@ -35,7 +35,7 @@ describe('GrievanceService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GrievanceService,
-        { provide: getRepositoryToken(Grievance), useValue: {} }
+        { provide: getRepositoryToken(Grievance), useValue: {} },
       ],
     }).compile();
 
@@ -48,7 +48,7 @@ describe('GrievanceService', () => {
 
   it('should analyze grievance text and parse JSON correctly', async () => {
     const result = await service.analyzeGrievance('I lost my money');
-    
+
     expect(result).toEqual({
       intent: 'COMPLAINT',
       priority: 'HIGH',

@@ -25,15 +25,19 @@ export class GrievanceService {
 
   async analyzeGrievance(text: string) {
     const sanitizedText = this.redactPii(text);
-    
+
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: [
           {
             role: 'user',
-            parts: [{ text: `Analyze the following banking grievance and extract the intent, priority (HIGH, MEDIUM, LOW), suggested resolution steps, severity (1-5 where 5 is highest), and an etaBand (e.g., '24-48 hours').\n\nGrievance: ${sanitizedText}` }]
-          }
+            parts: [
+              {
+                text: `Analyze the following banking grievance and extract the intent, priority (HIGH, MEDIUM, LOW), suggested resolution steps, severity (1-5 where 5 is highest), an etaBand (e.g., '24-48 hours'), and a brief 1-line reason explaining this classification.\n\nGrievance: ${sanitizedText}`,
+              },
+            ],
+          },
         ],
         config: {
           temperature: 0.2,
@@ -46,18 +50,29 @@ export class GrievanceService {
               suggestedResolution: { type: Type.STRING },
               severity: { type: Type.INTEGER },
               etaBand: { type: Type.STRING },
+              reason: { type: Type.STRING },
             },
-            required: ['intent', 'priority', 'suggestedResolution', 'severity', 'etaBand']
-          }
-        }
+            required: [
+              'intent',
+              'priority',
+              'suggestedResolution',
+              'severity',
+              'etaBand',
+              'reason',
+            ],
+          },
+        },
       });
-      
+
       const responseText = response.text;
       if (!responseText) throw new Error('No response from AI');
-      
+
       return JSON.parse(responseText);
     } catch (error) {
-      console.error('Error analyzing grievance with Gemini, using fallback:', error);
+      console.error(
+        'Error analyzing grievance with Gemini, using fallback:',
+        error,
+      );
       return this.fallbackClassifier(sanitizedText);
     }
   }
@@ -70,18 +85,31 @@ export class GrievanceService {
     let intent = 'General Inquiry';
     let suggestedResolution = 'Standard support routing.';
 
-    if (lowerText.includes('fraud') || lowerText.includes('stolen') || lowerText.includes('unauthorized')) {
+    let reason = 'General account inquiry matching standard criteria.';
+
+    if (
+      lowerText.includes('fraud') ||
+      lowerText.includes('stolen') ||
+      lowerText.includes('unauthorized')
+    ) {
       priority = 'HIGH';
       severity = 5;
       etaBand = '24-48 hours';
       intent = 'Fraud Report';
       suggestedResolution = 'Immediately freeze account and contact customer.';
-    } else if (lowerText.includes('failed') || lowerText.includes('pending') || lowerText.includes('declined')) {
+      reason = 'Keywords detected indicating unauthorized access or fraud.';
+    } else if (
+      lowerText.includes('failed') ||
+      lowerText.includes('pending') ||
+      lowerText.includes('declined')
+    ) {
       priority = 'MEDIUM';
       severity = 3;
       etaBand = '3-5 days';
       intent = 'Transaction Issue';
-      suggestedResolution = 'Investigate transaction status with payment gateway.';
+      suggestedResolution =
+        'Investigate transaction status with payment gateway.';
+      reason = 'Keywords detected indicating payment failure or delay.';
     }
 
     return {
@@ -89,25 +117,31 @@ export class GrievanceService {
       priority,
       suggestedResolution,
       severity,
-      etaBand
+      etaBand,
+      reason,
     };
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
   async resolveGrievances() {
     // Mock resolver: advance status of grievances over time
-    const openGrievances = await this.grievanceRepo.find({ where: { status: 'OPEN' } });
+    const openGrievances = await this.grievanceRepo.find({
+      where: { status: 'OPEN' },
+    });
     for (const g of openGrievances) {
       g.status = 'TRIAGED';
       await this.grievanceRepo.save(g);
     }
 
-    const triagedGrievances = await this.grievanceRepo.find({ where: { status: 'TRIAGED' } });
+    const triagedGrievances = await this.grievanceRepo.find({
+      where: { status: 'TRIAGED' },
+    });
     for (const g of triagedGrievances) {
       // If it's been TRIAGED for a bit, maybe resolve it in a real app.
       // Here we will just resolve them for the demo's sake, simulating a timeline.
       const timeSinceCreated = new Date().getTime() - g.createdAt.getTime();
-      if (timeSinceCreated > 5 * 60 * 1000) { // 5 minutes mock
+      if (timeSinceCreated > 5 * 60 * 1000) {
+        // 5 minutes mock
         g.status = 'RESOLVED';
         await this.grievanceRepo.save(g);
       }

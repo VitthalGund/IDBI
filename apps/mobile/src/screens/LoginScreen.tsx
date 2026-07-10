@@ -1,47 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { colors, typography, Card } from '@trustbank/ui-kit';
-import { getOrCreateDeviceId } from '../utils/device';
-import { apiClient } from '../utils/apiClient';
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { colors, typography, Card } from "@trustbank/ui-kit";
+import { getOrCreateDeviceId } from "../utils/device";
+import { apiClient } from "../utils/apiClient";
 
 interface LoginScreenProps {
   onLoginSuccess: (sessionData: { token: string; trustReason: string }) => void;
-  onRequireOtp: (username: string, deviceId: string, trustReason: string) => void;
+  onRequireOtp: (
+    username: string,
+    deviceId: string,
+    trustReason: string,
+  ) => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequireOtp }) => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
-  const [deviceId, setDeviceId] = useState('');
-  const [accountType, setAccountType] = useState<'retail' | 'msme'>('retail');
+export const LoginScreen: React.FC<LoginScreenProps> = ({
+  onLoginSuccess,
+  onRequireOtp,
+}) => {
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("admin");
+  const [deviceId, setDeviceId] = useState("");
+  const [accountType, setAccountType] = useState<"retail" | "msme">("retail");
   const [loading, setLoading] = useState(false);
-  const [deviceTrust, setDeviceTrust] = useState<{ score: number; trusted: boolean; reason: string } | null>({
+  const [deviceTrust, setDeviceTrust] = useState<{
+    score: number;
+    trusted: boolean;
+    reason: string;
+  } | null>({
     score: 0,
     trusted: false,
-    reason: 'New device detected. OTP required to establish device trust.'
+    reason: "New device detected. OTP required to establish device trust.",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function initDevice() {
       const id = await getOrCreateDeviceId();
       console.log(`[CLIENT] DEVICE ID RESOLVED: "${id}"`);
       setDeviceId(id);
-      
+
       // Fetch initial trust score preview
       try {
         const response = await fetch(`http://127.0.0.1:3000/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'admin', deviceId: id })
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", deviceId: id }),
         });
         const data = await response.json();
-        console.log(`[CLIENT] TRUST RESPONSE FOR "${id}":`, JSON.stringify(data));
+        console.log(
+          `[CLIENT] TRUST RESPONSE FOR "${id}":`,
+          JSON.stringify(data),
+        );
         if (data.success) {
           setDeviceTrust({
-            score: 0, 
+            score: 0,
             trusted: !data.requireOtp,
-            reason: data.trustReason
+            reason: data.trustReason,
           });
         }
       } catch (err) {
@@ -53,20 +74,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
 
   const handleLogin = async () => {
     if (!username.trim()) {
-      setError('Username is required');
+      setError("Username is required");
       return;
     }
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       // Direct call or via apiClient (apiClient queues if offline, but auth needs online)
-      const response = await fetch('http://127.0.0.1:3000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, deviceId, accountType })
+      const response = await fetch("http://127.0.0.1:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, deviceId, accountType }),
       });
-      
+
       const data = await response.json();
       setLoading(false);
 
@@ -74,14 +95,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
         if (data.requireOtp) {
           onRequireOtp(username, deviceId, data.trustReason);
         } else {
-          onLoginSuccess({ token: 'mock-session', trustReason: data.trustReason });
+          onLoginSuccess({
+            token: "mock-session",
+            trustReason: data.trustReason,
+          });
         }
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || "Login failed");
       }
     } catch (err) {
       setLoading(false);
-      setError('Connection to backend failed. Please try again.');
+      setError("Connection to backend failed. Please try again.");
     }
   };
 
@@ -119,23 +143,43 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Account Type</Text>
           <View style={styles.toggleGroup}>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, accountType === 'retail' && styles.toggleBtnActive]} 
-              onPress={() => setAccountType('retail')}
+            <TouchableOpacity
+              style={[
+                styles.toggleBtn,
+                accountType === "retail" && styles.toggleBtnActive,
+              ]}
+              onPress={() => setAccountType("retail")}
             >
-              <Text style={[styles.toggleBtnText, accountType === 'retail' && styles.toggleBtnTextActive]}>Retail</Text>
+              <Text
+                style={[
+                  styles.toggleBtnText,
+                  accountType === "retail" && styles.toggleBtnTextActive,
+                ]}
+              >
+                Retail
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, accountType === 'msme' && styles.toggleBtnActive]} 
-              onPress={() => setAccountType('msme')}
+            <TouchableOpacity
+              style={[
+                styles.toggleBtn,
+                accountType === "msme" && styles.toggleBtnActive,
+              ]}
+              onPress={() => setAccountType("msme")}
             >
-              <Text style={[styles.toggleBtnText, accountType === 'msme' && styles.toggleBtnTextActive]}>MSME / Business</Text>
+              <Text
+                style={[
+                  styles.toggleBtnText,
+                  accountType === "msme" && styles.toggleBtnTextActive,
+                ]}
+              >
+                MSME / Business
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.button} 
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -149,7 +193,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
         {deviceTrust && (
           <View style={styles.trustBanner}>
             <Text style={styles.trustTitle}>
-              Adaptive Security Profile: {deviceTrust.trusted ? '🛡️ Trusted' : '⚠️ OTP Required'}
+              Adaptive Security Profile:{" "}
+              {deviceTrust.trusted ? "🛡️ Trusted" : "⚠️ OTP Required"}
             </Text>
             <Text style={styles.trustText}>{deviceTrust.reason}</Text>
           </View>
@@ -162,7 +207,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 16,
     backgroundColor: colors.surfaceFog,
   },
@@ -173,34 +218,34 @@ const styles = StyleSheet.create({
   logo: {
     ...typography.h1,
     color: colors.brandTeal900,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 4,
   },
   subtitle: {
     ...typography.caption,
     color: colors.brandOrange500,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
     color: colors.statusDanger,
     marginBottom: 16,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
   },
   inputContainer: {
     marginBottom: 16,
   },
   inputLabel: {
     ...typography.caption,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.textInk,
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 6,
     padding: 12,
     fontSize: 16,
@@ -211,25 +256,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brandTeal900,
     padding: 14,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   buttonText: {
     color: colors.surfaceWhite,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   trustBanner: {
     marginTop: 20,
     padding: 12,
     borderRadius: 6,
-    backgroundColor: 'rgba(21, 129, 88, 0.1)',
+    backgroundColor: "rgba(21, 129, 88, 0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(21, 129, 88, 0.2)',
+    borderColor: "rgba(21, 129, 88, 0.2)",
   },
   trustTitle: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.brandTeal600,
     marginBottom: 4,
   },
@@ -239,16 +284,16 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   toggleGroup: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   toggleBtn: {
     flex: 1,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.surfaceWhite,
   },
   toggleBtnActive: {
@@ -257,7 +302,7 @@ const styles = StyleSheet.create({
   },
   toggleBtnText: {
     color: colors.textSecondary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   toggleBtnTextActive: {
     color: colors.surfaceWhite,

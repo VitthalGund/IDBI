@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MsmeService } from './msme.service';
 
@@ -8,7 +8,8 @@ export class MsmeController {
   constructor(private readonly msmeService: MsmeService) {}
 
   @Get('cashflow')
-  async getCashflow() {
-    return this.msmeService.getCashflowData();
+  async getCashflow(@Request() req: any) {
+    const deviceId = req.user.deviceId;
+    return this.msmeService.getCashflowData(deviceId);
   }
 }

@@ -14,6 +14,7 @@ IDBI TrustBank+ is a reliability-first, adaptive mobile banking layer built for 
 ## Setup Instructions
 
 ### Prerequisites
+
 - Node.js & pnpm
 - Docker & Docker Compose
 - A Gemini API Key for the Grievance feature (`GEMINI_API_KEY`)
@@ -21,6 +22,7 @@ IDBI TrustBank+ is a reliability-first, adaptive mobile banking layer built for 
 ### 1. Environment Setup
 
 Create a `.env.local` file in the root of the workspace and at `apps/api-gateway/.env.local` with the following content:
+
 ```
 GEMINI_API_KEY=your_actual_gemini_api_key
 ```
@@ -28,15 +30,18 @@ GEMINI_API_KEY=your_actual_gemini_api_key
 ### 2. Infrastructure (PostgreSQL Database)
 
 Start the mock PostgreSQL database using Docker Compose:
+
 ```bash
 cd infra
 docker-compose up -d
 ```
-*(The database runs on port 5435 to avoid conflicts).*
+
+_(The database runs on port 5435 to avoid conflicts)._
 
 ### 3. Install Dependencies
 
 Install packages using the pnpm workspace:
+
 ```bash
 pnpm install
 ```
@@ -67,4 +72,5 @@ npx playwright test
 To present the app, follow the narrative in `context/demo-script.md`. It outlines how to effectively show all Core MVP features in one continuous, compelling flow.
 
 ---
+
 **Note:** All banking features (transactions, balances, devices) are mock implementations tailored for the hackathon presentation.
