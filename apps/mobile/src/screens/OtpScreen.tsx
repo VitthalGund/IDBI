@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors, typography, Card } from '@trustbank/ui-kit';
+import { apiClient, setAuthToken } from '../utils/apiClient';
+import * as SecureStore from 'expo-secure-store';
+import * as Crypto from 'expo-crypto';
 
 interface OtpScreenProps {
   username: string;
@@ -32,13 +35,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, otp, deviceId })
-      });
-      
-      const data = await response.json();
+      const data = await apiClient.request('/auth/verify-otp', 'POST', { username, otp, deviceId });
       setLoading(false);
 
       if (data.success) {
@@ -57,13 +54,24 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
     if (!register) {
       // If they refuse registration, we clear the trust event we just recorded in the backend
       try {
-        await fetch('http://localhost:3000/auth/reset-trust', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceId })
-        });
+        await apiClient.request('/auth/reset-trust', 'POST', { deviceId });
       } catch (e) {
         // Ignore error on reset, we just proceed
+      }
+    } else {
+      // Generate device secret and register device
+      try {
+        const secret = Crypto.randomUUID();
+        await SecureStore.setItemAsync('deviceSecret', secret);
+        
+        // Temporarily set token to authorize registration
+        setAuthToken(tempToken);
+        await apiClient.request('/accounts/devices', 'POST', {
+          deviceLabel: 'My Device',
+          deviceSecret: secret
+        });
+      } catch (e) {
+        console.warn('Failed to register device:', e);
       }
     }
     onOtpSuccess(tempToken);

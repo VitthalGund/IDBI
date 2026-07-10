@@ -16,10 +16,13 @@ let Grievance = class Grievance {
     originalText;
     intent;
     priority;
+    severity;
+    etaBand;
     suggestedResolution;
     idempotencyKey;
     status;
     createdAt;
+    internalDeadline;
 };
 exports.Grievance = Grievance;
 __decorate([
@@ -39,6 +42,14 @@ __decorate([
     __metadata("design:type", String)
 ], Grievance.prototype, "priority", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Grievance.prototype, "severity", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Grievance.prototype, "etaBand", void 0);
+__decorate([
     (0, typeorm_1.Column)('text', { nullable: true }),
     __metadata("design:type", String)
 ], Grievance.prototype, "suggestedResolution", void 0);
@@ -54,6 +65,10 @@ __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Grievance.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Date)
+], Grievance.prototype, "internalDeadline", void 0);
 exports.Grievance = Grievance = __decorate([
     (0, typeorm_1.Entity)()
 ], Grievance);

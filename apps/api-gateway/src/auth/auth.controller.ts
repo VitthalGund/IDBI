@@ -4,12 +4,14 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { TrustEvent } from './entities/trust-event.entity';
+import { AccountService } from '../account/account.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
+    private readonly accountService: AccountService,
     @InjectRepository(TrustEvent)
     private trustRepository: Repository<TrustEvent>,
   ) {}
@@ -19,6 +21,7 @@ export class AuthController {
     @Body('username') username: string,
     @Body('password') password?: string,
     @Body('deviceId') deviceId?: string,
+    @Body('accountType') accountType?: 'retail' | 'msme',
   ) {
     if (!username || !deviceId) {
       throw new BadRequestException('Username and deviceId are required');
@@ -31,6 +34,9 @@ export class AuthController {
 
     const trustResult = await this.authService.evaluateTrustScore(deviceId);
     let token = undefined;
+
+    // Initialize account based on requested type
+    await this.accountService.getAccount(deviceId, accountType || 'retail');
 
     // If device is trusted, we skip OTP and issue a real token
     if (trustResult.trusted) {

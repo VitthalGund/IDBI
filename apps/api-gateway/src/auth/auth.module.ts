@@ -7,10 +7,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TrustEvent } from './entities/trust-event.entity';
 import { JwtStrategy } from './jwt.strategy';
+import { AccountModule } from '../account/account.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TrustEvent]),
+    AccountModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

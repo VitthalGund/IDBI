@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GrievanceController = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const grievance_service_1 = require("./grievance.service");
@@ -42,11 +43,16 @@ let GrievanceController = class GrievanceController {
             };
         }
         const analysis = await this.grievanceService.analyzeGrievance(text);
+        const internalDeadline = new Date();
+        internalDeadline.setDate(internalDeadline.getDate() + 30);
         const grievance = this.grievanceRepository.create({
             originalText: text,
             intent: analysis.intent,
             priority: analysis.priority,
             suggestedResolution: analysis.suggestedResolution,
+            severity: analysis.severity,
+            etaBand: analysis.etaBand,
+            internalDeadline,
             idempotencyKey,
             status: 'OPEN',
         });
@@ -69,6 +75,7 @@ __decorate([
 ], GrievanceController.prototype, "analyze", null);
 exports.GrievanceController = GrievanceController = __decorate([
     (0, common_1.Controller)('grievance'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(1, (0, typeorm_1.InjectRepository)(grievance_entity_1.Grievance)),
     __metadata("design:paramtypes", [grievance_service_1.GrievanceService,
         typeorm_2.Repository])

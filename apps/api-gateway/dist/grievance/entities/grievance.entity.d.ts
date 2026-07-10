@@ -3,8 +3,11 @@ export declare class Grievance {
     originalText: string;
     intent: string;
     priority: string;
+    severity: number;
+    etaBand: string;
     suggestedResolution: string;
     idempotencyKey: string;
     status: string;
     createdAt: Date;
+    internalDeadline: Date;
 }

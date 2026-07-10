@@ -2,12 +2,15 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
+import { DeviceRegistration } from './entities/device-registration.entity';
 
 @Injectable()
 export class AccountService implements OnModuleInit {
   constructor(
     @InjectRepository(Account)
     private accountRepository: Repository<Account>,
+    @InjectRepository(DeviceRegistration)
+    private deviceRegistrationRepository: Repository<DeviceRegistration>,
   ) {}
 
   async onModuleInit() {
@@ -31,11 +34,12 @@ export class AccountService implements OnModuleInit {
     }
   }
 
-  async getAccount(deviceId: string) {
+  async getAccount(deviceId: string, accountType: 'retail' | 'msme' = 'retail') {
     let account = await this.accountRepository.findOne({ where: { deviceId } });
     if (!account) {
-      // For demo purposes, assign the default retail account to the newly registered deviceId if they don't have one
-      account = await this.accountRepository.findOne({ where: { deviceId: 'default-device' } });
+      // For demo purposes, assign the requested account type to the newly registered deviceId
+      const templateId = accountType === 'msme' ? 'msme-device' : 'default-device';
+      account = await this.accountRepository.findOne({ where: { deviceId: templateId } });
       if (account) {
          // Create a new account for this device based on the template
          const newAccount = this.accountRepository.create({
@@ -47,5 +51,31 @@ export class AccountService implements OnModuleInit {
       }
     }
     return account;
+  }
+
+  async registerDevice(deviceId: string, deviceLabel: string, deviceSecret: string) {
+    let device = await this.deviceRegistrationRepository.findOne({ where: { deviceId } });
+    if (!device) {
+      device = this.deviceRegistrationRepository.create({
+        deviceId,
+        deviceLabel,
+        deviceSecret,
+        consentTimestamp: new Date(),
+      });
+      await this.deviceRegistrationRepository.save(device);
+    }
+    return device;
+  }
+
+  async getDevice(deviceId: string) {
+    return this.deviceRegistrationRepository.findOne({ where: { deviceId } });
+  }
+
+  async listDevices() {
+    return this.deviceRegistrationRepository.find();
+  }
+
+  async revokeDevice(deviceId: string) {
+    return this.deviceRegistrationRepository.delete({ deviceId });
   }
 }

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { colors } from '@trustbank/ui-kit';
 import { apiClient } from '../utils/apiClient';
+import * as SecureStore from 'expo-secure-store';
+import * as Crypto from 'expo-crypto';
 
 interface LiteModeScreenProps {
   deviceId: string;
@@ -32,10 +34,27 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
     setTransferStatus('');
     try {
       const amount = parseFloat(transferAmount);
+      const recipient = 'Friend';
+      const timestamp = Date.now().toString();
+      
+      const deviceSecret = await SecureStore.getItemAsync('deviceSecret');
+      if (!deviceSecret) {
+        setTransferStatus('Device not registered (missing secret)');
+        setLoading(false);
+        return;
+      }
+
+      const message = `${amount}:${recipient}:${timestamp}`;
+      const hmacToken = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        `${deviceSecret}:${message}`
+      );
+
       await apiClient.request('/transactions/transfer', 'POST', {
         amount,
-        recipient: 'Friend',
-        hmacToken: 'mock-hmac-token-123'
+        recipient,
+        timestamp,
+        hmacToken
       });
       setTransferStatus(`Successfully transferred ₹${amount}`);
       setTransferAmount('');

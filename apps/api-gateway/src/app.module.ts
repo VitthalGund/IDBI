@@ -15,6 +15,7 @@ import { Transaction } from './transaction/entities/transaction.entity';
 import { MsmeModule } from './msme/msme.module';
 import { AccountModule } from './account/account.module';
 import { Account } from './account/entities/account.entity';
+import { DeviceRegistration } from './account/entities/device-registration.entity';
 
 const isTest = process.env.NODE_ENV === 'test';
 
@@ -49,7 +50,7 @@ if (!isTest) {
           return {
             type: 'sqljs',
             autoSave: false,
-            entities: [Grievance, TrustEvent, Transaction, Account],
+            entities: [Grievance, TrustEvent, Transaction, Account, DeviceRegistration],
             synchronize: true,
             dropSchema: true,
           };
@@ -61,7 +62,7 @@ if (!isTest) {
           username: configService.get<string>('DB_USER', 'admin'),
           password: configService.get<string>('DB_PASSWORD', 'password'),
           database: configService.get<string>('DB_NAME', 'trustbank'),
-          entities: [Grievance, TrustEvent, Transaction, Account],
+          entities: [Grievance, TrustEvent, Transaction, Account, DeviceRegistration],
           synchronize: true, // For dev only
         };
       },

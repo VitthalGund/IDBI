@@ -13,6 +13,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [deviceId, setDeviceId] = useState('');
+  const [accountType, setAccountType] = useState<'retail' | 'msme'>('retail');
   const [loading, setLoading] = useState(false);
   const [deviceTrust, setDeviceTrust] = useState<{ score: number; trusted: boolean; reason: string } | null>({
     score: 0,
@@ -63,7 +64,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
       const response = await fetch('http://127.0.0.1:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, deviceId })
+        body: JSON.stringify({ username, password, deviceId, accountType })
       });
       
       const data = await response.json();
@@ -113,6 +114,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onRequ
             secureTextEntry
             placeholderTextColor={colors.textSecondary}
           />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Account Type</Text>
+          <View style={styles.toggleGroup}>
+            <TouchableOpacity 
+              style={[styles.toggleBtn, accountType === 'retail' && styles.toggleBtnActive]} 
+              onPress={() => setAccountType('retail')}
+            >
+              <Text style={[styles.toggleBtnText, accountType === 'retail' && styles.toggleBtnTextActive]}>Retail</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.toggleBtn, accountType === 'msme' && styles.toggleBtnActive]} 
+              onPress={() => setAccountType('msme')}
+            >
+              <Text style={[styles.toggleBtnText, accountType === 'msme' && styles.toggleBtnTextActive]}>MSME / Business</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity 
@@ -218,5 +237,29 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSecondary,
     lineHeight: 14,
+  },
+  toggleGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    alignItems: 'center',
+    backgroundColor: colors.surfaceWhite,
+  },
+  toggleBtnActive: {
+    borderColor: colors.brandTeal900,
+    backgroundColor: colors.brandTeal900,
+  },
+  toggleBtnText: {
+    color: colors.textSecondary,
+    fontWeight: 'bold',
+  },
+  toggleBtnTextActive: {
+    color: colors.surfaceWhite,
   },
 });
