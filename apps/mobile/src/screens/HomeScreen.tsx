@@ -7,9 +7,10 @@ interface HomeScreenProps {
   isProMode: boolean;
   deviceId?: string;
   onNavigateMsme?: () => void;
+  onNavigateDevices?: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onNavigateMsme }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onNavigateMsme, onNavigateDevices }) => {
   const [grievanceText, setGrievanceText] = useState('');
   const [grievanceResponse, setGrievanceResponse] = useState<any>(null);
   const [nudges, setNudges] = useState<any[]>([]);
@@ -156,6 +157,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ isProMode, deviceId, onN
                 <Text style={[typography.caption, { color: colors.surfaceWhite, marginTop: 4 }]}>View working capital & invoices</Text>
               </View>
               <Text style={{ fontSize: 24, color: colors.surfaceWhite }}>→</Text>
+            </View>
+          </Card>
+        </TouchableOpacity>
+      )}
+
+      {onNavigateDevices && (
+        <TouchableOpacity onPress={onNavigateDevices} style={{ marginBottom: 16 }}>
+          <Card style={{ backgroundColor: colors.surfaceWhite, borderColor: colors.brandTeal900, borderWidth: 1 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View>
+                <Text style={[typography.h2, { color: colors.brandTeal900 }]}>Manage Devices</Text>
+                <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>View and revoke trusted devices</Text>
+              </View>
+              <Text style={{ fontSize: 24, color: colors.brandTeal900 }}>→</Text>
             </View>
           </Card>
         </TouchableOpacity>

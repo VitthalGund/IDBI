@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator 
 import { colors } from '@trustbank/ui-kit';
 import { apiClient } from '../utils/apiClient';
 import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import CryptoJS from 'crypto-js';
 
 interface LiteModeScreenProps {
   deviceId: string;
@@ -45,10 +45,7 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
       }
 
       const message = `${amount}:${recipient}:${timestamp}`;
-      const hmacToken = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        `${deviceSecret}:${message}`
-      );
+      const hmacToken = CryptoJS.HmacSHA256(message, deviceSecret).toString(CryptoJS.enc.Hex);
 
       await apiClient.request('/transactions/transfer', 'POST', {
         amount,

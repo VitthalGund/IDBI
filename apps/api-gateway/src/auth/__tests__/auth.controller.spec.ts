@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AuthController } from '../auth.controller';
 import { AuthService } from '../auth.service';
+import { AccountService } from '../../account/account.service';
 import { TrustEvent } from '../entities/trust-event.entity';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
@@ -26,6 +27,7 @@ describe('AuthController', () => {
       providers: [
         { provide: AuthService, useValue: mockService },
         { provide: JwtService, useValue: { sign: () => 'mock-jwt-token' } },
+        { provide: AccountService, useValue: { getAccount: jest.fn() } },
         { provide: getRepositoryToken(TrustEvent), useValue: mockRepository },
       ],
     }).compile();

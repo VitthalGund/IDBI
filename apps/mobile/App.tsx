@@ -5,11 +5,12 @@ import { LoginScreen } from './src/screens/LoginScreen';
 import { OtpScreen } from './src/screens/OtpScreen';
 import { MsmeCockpitScreen } from './src/screens/MsmeCockpitScreen';
 import { LiteModeScreen } from './src/screens/LiteModeScreen';
+import { MyDevicesScreen } from './src/screens/MyDevicesScreen';
 import { ModeToggle, colors, typography } from '@trustbank/ui-kit';
 import { isSimulatedOffline, setSimulatedOffline, setAuthToken } from './src/utils/apiClient';
 import { getOrCreateDeviceId } from './src/utils/device';
 
-type ScreenName = 'LOGIN' | 'OTP' | 'HOME' | 'MSME_COCKPIT';
+type ScreenName = 'LOGIN' | 'OTP' | 'HOME' | 'MSME_COCKPIT' | 'MY_DEVICES';
 
 export default function App() {
   const [isProMode, setIsProMode] = useState(false);
@@ -174,6 +175,7 @@ export default function App() {
               isProMode={isProMode} 
               deviceId={deviceId}
               onNavigateMsme={() => setScreen('MSME_COCKPIT')}
+              onNavigateDevices={() => setScreen('MY_DEVICES')}
             />
           )}
         </>
@@ -190,6 +192,10 @@ export default function App() {
           </View>
           <MsmeCockpitScreen onBack={() => setScreen('HOME')} />
         </>
+      )}
+
+      {screen === 'MY_DEVICES' && (
+        <MyDevicesScreen onBack={() => setScreen('HOME')} />
       )}
 
       {nudge && (

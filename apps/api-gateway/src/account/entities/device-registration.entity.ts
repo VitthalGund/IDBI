@@ -15,6 +15,9 @@ export class DeviceRegistration {
   deviceSecret: string;
 
   @Column({ nullable: true })
+  username: string;
+
+  @Column({ nullable: true })
   consentTimestamp: Date;
 
   @CreateDateColumn()

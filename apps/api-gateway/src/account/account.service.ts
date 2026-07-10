@@ -53,13 +53,14 @@ export class AccountService implements OnModuleInit {
     return account;
   }
 
-  async registerDevice(deviceId: string, deviceLabel: string, deviceSecret: string) {
+  async registerDevice(deviceId: string, deviceLabel: string, deviceSecret: string, username: string) {
     let device = await this.deviceRegistrationRepository.findOne({ where: { deviceId } });
     if (!device) {
       device = this.deviceRegistrationRepository.create({
         deviceId,
         deviceLabel,
         deviceSecret,
+        username,
         consentTimestamp: new Date(),
       });
       await this.deviceRegistrationRepository.save(device);
@@ -71,8 +72,8 @@ export class AccountService implements OnModuleInit {
     return this.deviceRegistrationRepository.findOne({ where: { deviceId } });
   }
 
-  async listDevices() {
-    return this.deviceRegistrationRepository.find();
+  async listDevices(username: string) {
+    return this.deviceRegistrationRepository.find({ where: { username } });
   }
 
   async revokeDevice(deviceId: string) {
