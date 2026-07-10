@@ -20,3 +20,12 @@ export const typography = {
   caption: { fontSize: 12, fontWeight: "400" as const },
   label: { fontWeight: "bold" as const },
 };
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+};

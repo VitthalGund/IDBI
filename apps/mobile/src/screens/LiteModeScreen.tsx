@@ -11,6 +11,8 @@ import { colors } from "@trustbank/ui-kit";
 import { apiClient } from "../utils/apiClient";
 import * as SecureStore from "expo-secure-store";
 import CryptoJS from "crypto-js";
+import * as Speech from "expo-speech";
+import { SuccessOverlay } from "../components/SuccessOverlay";
 
 interface LiteModeScreenProps {
   deviceId: string;
@@ -21,6 +23,16 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
   const [loading, setLoading] = useState(false);
   const [transferAmount, setTransferAmount] = useState("");
   const [transferStatus, setTransferStatus] = useState("");
+  const [isHindi, setIsHindi] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const getText = (en: string, hi: string) => isHindi ? hi : en;
+
+  const speak = (text: string) => {
+    Speech.stop();
+    Speech.speak(text, { language: isHindi ? 'hi-IN' : 'en-IN' });
+  };
 
   const handleCheckBalance = async () => {
     setLoading(true);
@@ -28,6 +40,7 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
     try {
       const response = await apiClient.request("/accounts/me", "GET");
       setBalance(response.balance);
+      speak(getText(`Your balance is ${response.balance} rupees.`, `आपका बैलेंस ${response.balance} रुपये है।`));
     } catch (e) {
       setTransferStatus("Failed to get balance.");
     } finally {
@@ -62,14 +75,17 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
         timestamp,
         hmacToken,
       });
-      setTransferStatus(`Successfully transferred ₹${amount}`);
+      setSuccessMessage(getText(`Successfully transferred ₹${amount}`, `₹${amount} सफलतापूर्वक भेजे गए`));
+      setShowSuccess(true);
       setTransferAmount("");
+      speak(getText(`Successfully transferred ${amount} rupees.`, `${amount} रुपये सफलतापूर्वक भेजे गए।`));
       // Refresh balance if we have one
       if (balance !== null) {
         handleCheckBalance();
       }
     } catch (e) {
-      setTransferStatus("Transfer failed (AFA check error?)");
+      setTransferStatus(getText("Transfer failed", "पैसे भेजने में विफलता"));
+      speak(getText("Transfer failed", "पैसे भेजने में विफलता"));
     } finally {
       setLoading(false);
     }
@@ -77,10 +93,20 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>LITE MODE</Text>
+      <View style={styles.topRow}>
+        <Text style={styles.header}>{getText("LITE MODE", "सरल मोड")}</Text>
+        <TouchableOpacity 
+          style={styles.langToggle} 
+          onPress={() => setIsHindi(!isHindi)}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle Language"
+        >
+          <Text style={styles.langToggleText}>{isHindi ? "A/अ" : "अ/A"}</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.balanceContainer}>
-        <Text style={styles.label}>Your Balance</Text>
+        <Text style={styles.label}>{getText("Your Balance", "आपका बैलेंस")}</Text>
         {balance !== null ? (
           <Text style={styles.balanceValue}>
             ₹{balance.toLocaleString("en-IN")}
@@ -95,15 +121,15 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
           accessibilityRole="button"
           accessibilityLabel="Check Account Balance"
         >
-          <Text style={styles.btnText}>CHECK BALANCE</Text>
+          <Text style={styles.btnText}>{getText("CHECK BALANCE", "बैलेंस देखें")}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.transferContainer}>
-        <Text style={styles.label}>Transfer Funds</Text>
+        <Text style={styles.label}>{getText("Transfer Funds", "पैसे भेजें")}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Amount (₹)"
+          placeholder={getText("Amount (₹)", "राशि (₹)")}
           placeholderTextColor="#666"
           keyboardType="numeric"
           value={transferAmount}
@@ -117,7 +143,7 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
           accessibilityRole="button"
           accessibilityLabel="Send Money"
         >
-          <Text style={styles.btnText}>SEND MONEY</Text>
+          <Text style={styles.btnText}>{getText("SEND MONEY", "पैसे भेजें")}</Text>
         </TouchableOpacity>
         {transferStatus ? (
           <Text style={styles.statusText}>{transferStatus}</Text>
@@ -127,6 +153,13 @@ export const LiteModeScreen: React.FC<LiteModeScreenProps> = ({ deviceId }) => {
       {loading && (
         <ActivityIndicator size="large" color="#000" style={styles.loader} />
       )}
+
+      <SuccessOverlay 
+        visible={showSuccess} 
+        title={getText("Success", "सफलता")}
+        message={successMessage}
+        onDismiss={() => setShowSuccess(false)}
+      />
     </View>
   );
 };
@@ -137,13 +170,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF", // High contrast white
     padding: 16,
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
   header: {
     fontSize: 28,
     fontWeight: "900",
     color: "#000000",
-    marginBottom: 24,
-    textAlign: "center",
     textDecorationLine: "underline",
+  },
+  langToggle: {
+    borderWidth: 2,
+    borderColor: '#000',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  langToggleText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
   },
   balanceContainer: {
     borderWidth: 4,

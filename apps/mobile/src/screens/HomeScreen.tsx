@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { Card, StatusPill, colors, typography } from "@trustbank/ui-kit";
+import { Card, StatusPill, colors, typography, spacing } from "@trustbank/ui-kit";
 import { apiClient } from "../utils/apiClient";
+import { SuccessOverlay } from "../components/SuccessOverlay";
 
 interface HomeScreenProps {
   isProMode: boolean;
@@ -29,6 +30,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [nudges, setNudges] = useState<any[]>([]);
 
   const [account, setAccount] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (deviceId) {
@@ -73,6 +76,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       }
       setGrievanceResponse(response.data);
       setGrievanceText("");
+      setSuccessMessage("Your grievance has been successfully submitted to the RB-IOS.");
+      setShowSuccess(true);
     } catch (e) {
       Alert.alert("Error", (e as Error).message);
     }
@@ -322,6 +327,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       {renderGrievanceForm()}
       {renderGrievanceCard()}
+
+      <SuccessOverlay 
+        visible={showSuccess} 
+        title="Success"
+        message={successMessage}
+        onDismiss={() => setShowSuccess(false)}
+      />
     </ScrollView>
   );
 };
@@ -334,10 +346,10 @@ const styles = StyleSheet.create({
   greeting: {
     ...typography.h1,
     color: colors.brandTeal900,
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
   largeTile: {
-    padding: 32,
+    padding: spacing.xl,
     alignItems: "center",
     justifyContent: "center",
   },

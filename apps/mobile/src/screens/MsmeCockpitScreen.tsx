@@ -5,9 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { Card, colors, typography, StatusPill } from "@trustbank/ui-kit";
 import { apiClient } from "../utils/apiClient";
+import { LineChart } from "react-native-chart-kit";
 
 interface MsmeCockpitScreenProps {
   onBack: () => void;
@@ -87,6 +89,63 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({
           </Text>
         </Card>
       </View>
+
+      <Card style={{ marginBottom: 16 }}>
+        <Text style={typography.h2}>Cash-Flow Trends (Past 6 Months)</Text>
+        <LineChart
+          data={{
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+            datasets: [
+              {
+                data: [
+                  Math.random() * 100,
+                  Math.random() * 100,
+                  Math.random() * 100,
+                  Math.random() * 100,
+                  Math.random() * 100,
+                  data.cashIn / 100000,
+                ],
+                color: (opacity = 1) => `rgba(80, 180, 50, ${opacity})`, // success
+              },
+              {
+                data: [
+                  Math.random() * 80,
+                  Math.random() * 80,
+                  Math.random() * 80,
+                  Math.random() * 80,
+                  Math.random() * 80,
+                  data.cashOut / 100000,
+                ],
+                color: (opacity = 1) => `rgba(237, 86, 27, ${opacity})`, // danger
+              },
+            ],
+          }}
+          width={Dimensions.get("window").width - 64} // padding adjustment
+          height={220}
+          yAxisLabel="₹"
+          yAxisSuffix="L"
+          chartConfig={{
+            backgroundColor: colors.surfaceWhite,
+            backgroundGradientFrom: colors.surfaceWhite,
+            backgroundGradientTo: colors.surfaceWhite,
+            decimalPlaces: 1,
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+            propsForDots: {
+              r: "4",
+              strokeWidth: "2",
+            },
+          }}
+          bezier
+          style={{
+            marginVertical: 16,
+            borderRadius: 16,
+          }}
+        />
+      </Card>
 
       <Card>
         <Text style={typography.h2}>Pending GST Invoices</Text>

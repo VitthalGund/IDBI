@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Card, colors, typography } from "@trustbank/ui-kit";
 import { apiClient } from "../utils/apiClient";
+import { ConsentPanel } from "../components/ConsentPanel";
 
 interface MyDevicesScreenProps {
   onBack: () => void;
@@ -55,6 +56,8 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
       </TouchableOpacity>
 
       <Text style={styles.header}>My Trusted Devices</Text>
+
+      <ConsentPanel />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 

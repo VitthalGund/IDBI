@@ -10,6 +10,7 @@ import {
 import { colors, typography, Card } from "@trustbank/ui-kit";
 import { getOrCreateDeviceId } from "../utils/device";
 import { apiClient } from "../utils/apiClient";
+import { OnboardingProgress } from "../components/OnboardingProgress";
 
 interface LoginScreenProps {
   onLoginSuccess: (sessionData: { token: string; trustReason: string }) => void;
@@ -111,6 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <OnboardingProgress currentStep={1} />
       <Card style={styles.card}>
         <Text style={styles.logo}>IDBI TrustBank+</Text>
         <Text style={styles.subtitle}>Reliability-First Mobile Banking</Text>

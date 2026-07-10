@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { colors, typography, Card } from "@trustbank/ui-kit";
+import { OnboardingProgress } from "../components/OnboardingProgress";
 import { apiClient, setAuthToken } from "../utils/apiClient";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
@@ -91,8 +92,13 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   if (isVerified) {
     return (
       <View style={styles.container}>
+        <OnboardingProgress currentStep={3} />
+        {/* 
+          Optional visual aid: a large icon or illustration representing "Verification"
+          could be placed here in a real production app.
+        */}
         <Card style={styles.card}>
-          <Text style={styles.title}>Device Registration</Text>
+          <Text style={styles.title}>Verify Your Identity</Text>
           <Text style={styles.subtitle}>
             You successfully verified this device. Would you like to register it
             as a trusted device to skip OTP in the future?
@@ -118,6 +124,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <OnboardingProgress currentStep={2} />
       <Card style={styles.card}>
         <Text style={styles.title}>Step-up verification</Text>
         <Text style={styles.subtitle}>
