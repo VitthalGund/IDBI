@@ -97,28 +97,21 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({
         <Text style={typography.h2}>Cash-Flow Trends (Past 6 Months)</Text>
         <LineChart
           data={{
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+            labels: data.chartData?.labels || [
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+            ],
             datasets: [
               {
-                data: [
-                  Math.random() * 100,
-                  Math.random() * 100,
-                  Math.random() * 100,
-                  Math.random() * 100,
-                  Math.random() * 100,
-                  data.cashIn / 100000,
-                ],
+                data: data.chartData?.datasets[0]?.data || [0, 0, 0, 0, 0, 0],
                 color: (opacity = 1) => `rgba(80, 180, 50, ${opacity})`, // success
               },
               {
-                data: [
-                  Math.random() * 80,
-                  Math.random() * 80,
-                  Math.random() * 80,
-                  Math.random() * 80,
-                  Math.random() * 80,
-                  data.cashOut / 100000,
-                ],
+                data: data.chartData?.datasets[1]?.data || [0, 0, 0, 0, 0, 0],
                 color: (opacity = 1) => `rgba(237, 86, 27, ${opacity})`, // danger
               },
             ],

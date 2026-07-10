@@ -58,4 +58,24 @@ export class AccountController {
     await this.accountService.revokeDevice(deviceId);
     return { success: true, message: 'Device revoked successfully' };
   }
+
+  @Post('devices/rotate')
+  async rotateDeviceSecret(
+    @Request() req: any,
+    @Body('deviceId') deviceId: string,
+  ) {
+    const username = req.user.username;
+    if (!deviceId) {
+      throw new BadRequestException('deviceId is required');
+    }
+    try {
+      const device = await this.accountService.rotateDeviceSecret(
+        deviceId,
+        username,
+      );
+      return { success: true, newSecret: device.deviceSecret };
+    } catch (e) {
+      throw new BadRequestException((e as Error).message);
+    }
+  }
 }

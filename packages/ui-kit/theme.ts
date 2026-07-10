@@ -8,7 +8,7 @@ export const colors = {
   textSecondary: "rgba(0, 0, 0, 0.6)",
   statusSuccess: "#50B432",
   statusInfo: "#058DC7",
-  statusWarn: "#EDEF00",
+  statusWarn: "#ED561B", // Was #EDEF00 (contrast fix)
   statusDanger: "#ED561B", // Using #ED561B as per ui-context
 };
 

@@ -83,7 +83,7 @@ describe('TransactionController', () => {
         .update(message)
         .digest('hex');
 
-      const result = await controller.transferFunds(
+      const result: any = await controller.transferFunds(
         { user: { deviceId: 'dev-1' } },
         amount,
         recipient,

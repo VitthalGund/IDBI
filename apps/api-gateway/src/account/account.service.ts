@@ -92,4 +92,16 @@ export class AccountService implements OnModuleInit {
   async revokeDevice(deviceId: string) {
     return this.deviceRegistrationRepository.delete({ deviceId });
   }
+
+  async rotateDeviceSecret(deviceId: string, username: string) {
+    const device = await this.deviceRegistrationRepository.findOne({
+      where: { deviceId, username },
+    });
+    if (!device) {
+      throw new Error('Device not found or not owned by user');
+    }
+    const crypto = require('crypto');
+    device.deviceSecret = crypto.randomUUID();
+    return this.deviceRegistrationRepository.save(device);
+  }
 }

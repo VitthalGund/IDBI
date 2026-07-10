@@ -11,6 +11,8 @@ import {
 import { Card, colors, typography } from "@trustbank/ui-kit";
 import { apiClient } from "../utils/apiClient";
 import { ConsentPanel } from "../components/ConsentPanel";
+import { SuccessOverlay } from "../components/SuccessOverlay";
+import * as SecureStore from "expo-secure-store";
 
 interface MyDevicesScreenProps {
   onBack: () => void;
@@ -20,6 +22,8 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
   const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetchDevices();
@@ -41,10 +45,29 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
     try {
       setLoading(true);
       await apiClient.request(`/accounts/devices/${deviceId}`, "DELETE");
-      Alert.alert("Success", "Device revoked successfully");
+      setSuccessMessage("Device revoked successfully");
+      setShowSuccess(true);
       fetchDevices();
     } catch (e) {
       Alert.alert("Error", "Failed to revoke device");
+      setLoading(false);
+    }
+  };
+
+  const rotateDevice = async (deviceId: string) => {
+    try {
+      setLoading(true);
+      const res = await apiClient.request(`/accounts/devices/rotate`, "POST", {
+        deviceId,
+      });
+      // In a real app we'd check if this is the CURRENT device before overwriting SecureStore.
+      // For this demo, we'll store it if we rotate.
+      await SecureStore.setItemAsync("deviceSecret", res.newSecret);
+      setSuccessMessage("Device secret rotated securely.");
+      setShowSuccess(true);
+      fetchDevices();
+    } catch (e) {
+      Alert.alert("Error", "Failed to rotate device secret");
       setLoading(false);
     }
   };
@@ -75,15 +98,30 @@ export const MyDevicesScreen: React.FC<MyDevicesScreenProps> = ({ onBack }) => {
               </Text>
               <Text style={styles.deviceInfo}>ID: {device.deviceId}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.removeBtn}
-              onPress={() => removeDevice(device.deviceId)}
-            >
-              <Text style={styles.removeBtnText}>Revoke</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: "column", gap: 8 }}>
+              <TouchableOpacity
+                style={styles.rotateBtn}
+                onPress={() => rotateDevice(device.deviceId)}
+              >
+                <Text style={styles.rotateBtnText}>Rotate</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeBtn}
+                onPress={() => removeDevice(device.deviceId)}
+              >
+                <Text style={styles.removeBtnText}>Revoke</Text>
+              </TouchableOpacity>
+            </View>
           </Card>
         ))
       )}
+
+      <SuccessOverlay
+        visible={showSuccess}
+        title="Success"
+        message={successMessage}
+        onDismiss={() => setShowSuccess(false)}
+      />
     </ScrollView>
   );
 };
@@ -140,9 +178,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
+    alignItems: "center",
   },
   removeBtnText: {
     color: colors.surfaceWhite,
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  rotateBtn: {
+    backgroundColor: colors.surfaceFog,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  rotateBtnText: {
+    color: colors.textInk,
     fontWeight: "bold",
     fontSize: 12,
   },

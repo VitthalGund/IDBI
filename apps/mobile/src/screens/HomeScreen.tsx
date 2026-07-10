@@ -68,6 +68,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     }
   };
 
+  const handleAnomalyAction = async (
+    nudge: any,
+    action: "this-was-me" | "report-fraud",
+  ) => {
+    if (action === "this-was-me") {
+      try {
+        if (deviceId) {
+          await apiClient.request("/auth/trust-event", "POST", {
+            deviceId,
+            delta: 2,
+          });
+        }
+        setNudges((prev) => prev.filter((n) => n.id !== nudge.id));
+      } catch (e) {
+        console.warn("Failed to record trust event", e);
+      }
+    } else if (action === "report-fraud") {
+      setGrievanceText(
+        `Fraud reported: Unrecognized transaction of ₹${nudge.amount} at ${nudge.description}. (Category: Fraud, Severity: 5)`,
+      );
+      // In a real app we might scroll to the form here
+    }
+  };
+
   const submitGrievance = async () => {
     if (!grievanceText) return;
     try {
@@ -213,24 +237,63 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.greeting}>Dashboard Overview</Text>
 
-      {nudges.length > 0 && (
-        <Card
-          style={{
-            borderColor: colors.statusWarn,
-            borderWidth: 1,
-            marginBottom: 16,
-          }}
-        >
-          <Text style={[typography.h2, { color: colors.statusWarn }]}>
-            Security Nudges
-          </Text>
-          {nudges.map((nudge, index) => (
-            <View key={index} style={styles.nudgeItem}>
-              <Text style={typography.body}>⚠️ {nudge.anomalyReason}</Text>
+      {nudges.length > 0 &&
+        nudges.map((nudge, index) => (
+          <Card
+            key={index}
+            style={{
+              borderLeftColor: colors.brandOrange500,
+              borderLeftWidth: 4,
+              marginBottom: 16,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ fontSize: 16, marginRight: 8 }}>⚠️</Text>
+              <Text style={[typography.h2, { color: colors.textInk, flex: 1 }]}>
+                Unusual transaction flagged
+              </Text>
             </View>
-          ))}
-        </Card>
-      )}
+
+            <Text
+              style={[
+                typography.body,
+                { color: colors.textSecondary, marginTop: 8, lineHeight: 20 },
+              ]}
+            >
+              ₹{Number(nudge.amount).toLocaleString()} to{" "}
+              {nudge.description || "Unknown Merchant"} —{" "}
+              {nudge.anomalyReason || "Flagged by security system"}
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 16, gap: 12 }}>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { flex: 1, backgroundColor: colors.surfaceFog },
+                ]}
+                onPress={() => handleAnomalyAction(nudge, "this-was-me")}
+              >
+                <Text style={[styles.buttonText, { color: colors.textInk }]}>
+                  This was me
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { flex: 1, backgroundColor: colors.brandOrange500 },
+                ]}
+                onPress={() => handleAnomalyAction(nudge, "report-fraud")}
+              >
+                <Text
+                  style={[styles.buttonText, { color: colors.surfaceWhite }]}
+                >
+                  Report fraud
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Card>
+        ))}
 
       {onNavigateMsme && (
         <TouchableOpacity onPress={onNavigateMsme} style={{ marginBottom: 16 }}>
@@ -305,31 +368,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       <Card>
         <Text style={typography.bodyLarge}>Total Balance</Text>
-        <Text style={typography.h1}>
+        <Text style={[typography.h1, { fontSize: 42, marginVertical: 8 }]}>
           ₹{account ? account.balance.toLocaleString() : "..."}
         </Text>
-        <View style={{ marginTop: 8 }}>
+        <View style={{ alignSelf: "flex-start" }}>
           <StatusPill status="SUCCESS" label="+ 5% vs last month" />
         </View>
       </Card>
 
       <Card>
         <Text style={typography.h2}>Recent Transactions</Text>
-        <View style={styles.transaction}>
-          <View>
-            <Text style={typography.body}>Client Payment A</Text>
-            <Text style={typography.caption}>1 day ago</Text>
+        <View style={{ marginTop: 16 }}>
+          <View style={styles.transaction}>
+            <View style={styles.transactionIconBox}>
+              <Text style={{ fontSize: 18 }}>↓</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={typography.bodyLarge}>Client Payment A</Text>
+              <Text style={typography.caption}>1 day ago, 11:20 am</Text>
+            </View>
+            <Text
+              style={[
+                typography.bodyLarge,
+                { color: colors.statusSuccess, fontWeight: "bold" },
+              ]}
+            >
+              +₹50,000
+            </Text>
           </View>
-          <Text style={[typography.body, { color: colors.statusSuccess }]}>
-            +₹50,000
-          </Text>
-        </View>
-        <View style={styles.transaction}>
-          <View>
-            <Text style={typography.body}>Vendor Payment X</Text>
-            <Text style={typography.caption}>2 days ago</Text>
+
+          <View style={styles.transaction}>
+            <View style={styles.transactionIconBox}>
+              <Text style={{ fontSize: 18 }}>↑</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={typography.bodyLarge}>Vendor Payment X</Text>
+              <Text style={typography.caption}>2 days ago, 6:05 pm</Text>
+            </View>
+            <Text
+              style={[
+                typography.bodyLarge,
+                { color: colors.textInk, fontWeight: "bold" },
+              ]}
+            >
+              -₹15,000
+            </Text>
           </View>
-          <Text style={typography.body}>-₹15,000</Text>
         </View>
       </Card>
 
@@ -376,16 +460,19 @@ const styles = StyleSheet.create({
   },
   transaction: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 12,
+    alignItems: "center",
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.surfaceFog,
   },
-  nudgeItem: {
-    paddingVertical: 8,
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceFog,
+  transactionIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceFog,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
   },
   input: {
     borderWidth: 1,
