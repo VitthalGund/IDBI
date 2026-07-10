@@ -78,17 +78,17 @@ export default function App() {
 
   // Continuous Trust Signal (Phase C)
   useEffect(() => {
-    if (screen !== 'HOME' || !sessionToken || isOffline || !deviceId) return;
+    if (screen !== "HOME" || !sessionToken || isOffline || !deviceId) return;
 
     const trustInterval = setInterval(async () => {
       try {
-        await apiClient.request('/auth/trust-event', 'POST', {
+        await apiClient.request("/auth/trust-event", "POST", {
           deviceId,
           delta: 1, // small incremental trust
-          reason: 'Continuous session trust signal'
+          reason: "Continuous session trust signal",
         });
       } catch (e) {
-        console.warn('Failed to emit continuous trust signal', e);
+        console.warn("Failed to emit continuous trust signal", e);
       }
     }, 60000); // every 1 minute
 

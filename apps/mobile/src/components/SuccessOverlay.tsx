@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import { Card, colors, typography } from '@trustbank/ui-kit';
+import React, { useEffect } from "react";
+import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import * as Haptics from "expo-haptics";
+import { Card, colors, typography } from "@trustbank/ui-kit";
 
 interface SuccessOverlayProps {
   visible: boolean;
@@ -10,7 +10,12 @@ interface SuccessOverlayProps {
   onDismiss: () => void;
 }
 
-export const SuccessOverlay: React.FC<SuccessOverlayProps> = ({ visible, title, message, onDismiss }) => {
+export const SuccessOverlay: React.FC<SuccessOverlayProps> = ({
+  visible,
+  title,
+  message,
+  onDismiss,
+}) => {
   useEffect(() => {
     if (visible) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -36,14 +41,14 @@ export const SuccessOverlay: React.FC<SuccessOverlayProps> = ({ visible, title, 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 24,
   },
   card: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     padding: 32,
   },
   icon: {
@@ -55,12 +60,12 @@ const styles = StyleSheet.create({
     ...typography.h1,
     color: colors.brandTeal900,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   message: {
     ...typography.body,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
   },
   button: {
@@ -68,12 +73,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 8,
-    width: '100%',
+    width: "100%",
   },
   buttonText: {
     color: colors.surfaceWhite,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     fontSize: 16,
   },
 });

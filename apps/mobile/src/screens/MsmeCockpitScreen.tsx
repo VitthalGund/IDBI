@@ -83,7 +83,10 @@ export const MsmeCockpitScreen: React.FC<MsmeCockpitScreenProps> = ({
         <Card style={[styles.statCard, { marginLeft: 8 }]}>
           <Text style={typography.caption}>Cash Out (This Month)</Text>
           <Text
-            style={[typography.h2, { color: colors.statusDanger, marginTop: 4 }]}
+            style={[
+              typography.h2,
+              { color: colors.statusDanger, marginTop: 4 },
+            ]}
           >
             -₹{(data.cashOut / 100000).toFixed(1)}L
           </Text>
