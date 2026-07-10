@@ -4,9 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 const QUEUE_KEY = '@trustbank/offline-queue';
 
 export let isSimulatedOffline = false;
+let authToken: string | null = null;
 
 export const setSimulatedOffline = (offline: boolean) => {
   isSimulatedOffline = offline;
+};
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
 };
 
 interface QueuedRequest {
@@ -48,12 +53,15 @@ export const syncQueue = async (baseUrl: string) => {
     }
     
     try {
+      const headers: any = {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': req.id,
+      };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      
       await fetch(`${baseUrl}${req.url}`, {
         method: req.method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': req.id,
-        },
+        headers,
         body: req.body ? JSON.stringify(req.body) : undefined,
       });
       // If success, we don't push to newQueue (it's resolved)
@@ -67,31 +75,68 @@ export const syncQueue = async (baseUrl: string) => {
 };
 
 export const apiClient = {
-  async request(url: string, method: string, body?: any, baseUrl: string = 'http://localhost:3000') {
+  async request(url: string, method: string, body?: any, baseUrl: string = 'http://127.0.0.1:3000') {
+    const CACHE_KEY = `@trustbank/cache:${url}`;
+
     if (isSimulatedOffline) {
       if (method === 'GET') {
-        throw new Error('Offline: Cannot fetch new data');
+        const cachedDataStr = await AsyncStorage.getItem(CACHE_KEY);
+        if (cachedDataStr) {
+          const cachedData = JSON.parse(cachedDataStr);
+          return cachedData.data;
+        }
+        throw new Error('Offline: No cached data available');
       }
       return enqueueRequest({ url, method, body });
     }
 
     const idempotencyKey = uuidv4();
+    const headers: any = {
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     try {
       const response = await fetch(`${baseUrl}${url}`, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': idempotencyKey,
-        },
+        headers,
         body: body ? JSON.stringify(body) : undefined,
       });
-      return await response.json();
+      const data = await response.json();
+
+      if (method === 'GET') {
+        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data
+        }));
+      }
+
+      return data;
     } catch (error) {
       if (method !== 'GET') {
         // Enqueue if the network failed unexpectedly
         return enqueueRequest({ url, method, body });
       }
+      
+      // If GET fails due to network, try to serve from cache
+      const cachedDataStr = await AsyncStorage.getItem(CACHE_KEY);
+      if (cachedDataStr) {
+        const cachedData = JSON.parse(cachedDataStr);
+        return cachedData.data;
+      }
+      
       throw error;
     }
+  },
+
+  async getCacheTimestamp(url: string): Promise<number | null> {
+    const CACHE_KEY = `@trustbank/cache:${url}`;
+    const cachedDataStr = await AsyncStorage.getItem(CACHE_KEY);
+    if (cachedDataStr) {
+      const cachedData = JSON.parse(cachedDataStr);
+      return cachedData.timestamp;
+    }
+    return null;
   }
 };
