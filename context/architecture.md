@@ -4,17 +4,17 @@
 
 ```
 [ Mobile App (React Native/Expo) ]
-        |  HTTPS/JSON (REST) + WebSocket (grievance status push)
+        |  HTTPS/JSON (REST) + Polling (grievance status, alerts)
         v
-[ API Gateway / BFF (Node.js + NestJS) ]
+[ API Gateway / BFF (Node.js + NestJS Monolith) ]
         |
-        +--> [ Auth Service ]        -> device-trust store (Redis)
-        +--> [ Accounts/Txn Mock ]   -> Postgres (mock core-banking data)
-        +--> [ Grievance Service ]   -> Postgres + LLM API (classification)
-        +--> [ Anomaly Service ]     -> rule engine, reads Txn stream
-        +--> [ MSME Cockpit Service]-> Postgres (invoices/cash-flow mock data)
+        +--> [ Auth Module ]        -> device-trust store (Postgres)
+        +--> [ Accounts/Txn Mock ]  -> Postgres (mock core-banking data)
+        +--> [ Grievance Module ]   -> Postgres + LLM API (classification)
+        +--> [ Anomaly Module ]     -> rule engine, reads Txn stream
+        +--> [ MSME Cockpit Module]-> Postgres (invoices/cash-flow mock data)
         v
-[ Postgres (primary) ] [ Redis (session/cache/trust score) ] [ S3-compatible (docs) ]
+[ Postgres (primary) ]
 ```
 
 Everything below the API Gateway is a **mock/sandbox layer** — there is no real
@@ -38,9 +38,7 @@ scope creep pull in a real banking integration.
 ## 3. Storage Model
 | Store | Used for | Notes |
 |---|---|---|
-| Postgres | accounts (mock), transactions (mock), grievance tickets, MSME invoices | single schema per service, no cross-service joins |
-| Redis | session tokens, device-trust scores, offline-queue dedup keys | TTL-based, never source of truth for money data |
-| S3-compatible bucket (e.g. MinIO locally) | uploaded grievance attachments, mock KYC docs | never store raw PII unencrypted |
+| Postgres | accounts, transactions, grievance tickets, MSME invoices, trust scores | single schema per module, no cross-module joins where possible |
 
 ## 4. Invariants (do not violate)
 1. **No real money movement.** All transaction data is seeded/mocked. Any "Pay/
@@ -61,7 +59,7 @@ scope creep pull in a real banking integration.
 1. User submits grievance (free text + optional attachment) → BFF.
 2. Grievance Service creates ticket (status=Open), calls LLM API with redacted
    text to classify: category, severity (1–5), suggested ETA band.
-3. Ticket updated to Triaged with category/severity/ETA; WebSocket push to app.
+3. Ticket updated to Triaged with category/severity/ETA.
 4. Mock resolver worker advances ticket through In-Progress → Resolved on a timer
    for demo purposes (represents what a human agent queue would do).
 5. User sees live status + ETA at every stage — contrast this explicitly against
@@ -78,7 +76,6 @@ scope creep pull in a real banking integration.
    is itself a USP, not just a technical shortcut.
 
 ## 7. Deployment Shape (hackathon-realistic)
-- Single docker-compose stack: `api-gateway`, `postgres`, `redis`, `minio`
-  (optional), mobile app run via Expo Go for the demo device.
+- Single docker-compose stack: `api-gateway`, `postgres`, mobile app run via Expo Go for the demo device.
 - No Kubernetes, no multi-region — that would be over-engineering for a 36–48 hr
   build and would not help the judging criteria.

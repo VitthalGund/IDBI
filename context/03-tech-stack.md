@@ -14,12 +14,10 @@
 ## 2. Backend
 | Tool | Purpose |
 |---|---|
-| Node.js + NestJS | BFF + all services, consistent module structure |
-| Prisma ORM | Postgres access, migrations, seed scripts |
-| Zod | Request/response validation, shared with mobile via `shared-types` |
-| Socket.IO (or plain polling fallback) | Live grievance-status push |
-| @nestjs/swagger | OpenAPI contract generation |
+| Node.js + NestJS | Monolithic backend housing Auth, Grievance, Anomaly, and MSME modules |
+| TypeORM | Postgres access, entity mapping |
 | @nestjs/throttler | Rate limiting |
+| @nestjs/jwt | JWT token generation and verification |
 | Jest + Supertest | Backend unit + integration tests |
 
 ## 3. Data & AI
@@ -28,7 +26,6 @@
 | Anthropic/OpenAI-compatible LLM API | Grievance text classification (category/severity/ETA) |
 | Custom rule engine (plain TypeScript, no framework) | Anomaly nudges, adaptive-auth trust scoring, and the offline fallback classifier for grievance triage |
 | Postgres | System of record for tickets, mock accounts/transactions, MSME invoices |
-| Redis | Sessions, device-trust scores, offline-queue dedup |
 
 _No custom ML model training is required or recommended — see
 `plan/04-data-and-models.md` for the full reasoning, since the team is
@@ -37,11 +34,10 @@ full-stack/mobile-strong and lighter on ML._
 ## 4. Infra & Dev Tooling
 | Tool | Purpose |
 |---|---|
-| Docker + docker-compose | Local Postgres, Redis, MinIO (optional), all services |
+| Docker + docker-compose | Local Postgres and API gateway |
 | GitHub + GitHub Actions | Repo hosting, CI (lint + test on push) |
 | ESLint (airbnb-typescript) + Prettier | Code style |
 | Husky + lint-staged | Pre-commit enforcement |
-| MinIO (optional) | S3-compatible storage for grievance attachments, only if time allows |
 
 ## 5. Design & Deck
 | Tool | Purpose |
